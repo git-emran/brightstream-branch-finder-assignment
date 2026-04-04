@@ -117,9 +117,11 @@ select {
 
 .bs-nav {
   padding: 1.25rem 0;
-  background: rgba(254, 253, 251, 0.82);
-  border-bottom: 1px solid rgba(10, 22, 40, 0.06);
+  /* DESIGN(glass-nav): Totally transparent background + blur (no white wash). */
+  background: transparent;
+  border-bottom: 1px solid transparent;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .bs-nav__content {
@@ -199,6 +201,34 @@ select {
   padding: 2.75rem 0 2.25rem;
 }
 
+.bs-hero--branchFinder {
+  /* DESIGN(hero): Background photo + brand overlay, keeps text readable. */
+  /* Extend under the fixed header so the hero reaches the very top. */
+  margin-top: -88px;
+  padding-top: calc(2.75rem + 88px);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(10, 22, 40, 0.98) 0%,
+      rgba(10, 22, 40, 0.86) 45%,
+      rgba(10, 22, 40, 0.59) 75%,
+      rgba(248, 246, 241, 0.31) 100%
+    ),
+    url("https://images.unsplash.com/photo-1604594849809-dfedbc827105?q=80&w=3570&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+  background-size: cover;
+  background-position: center;
+  color: rgba(254, 253, 251, 0.98);
+}
+.bs-hero--branchFinder .bs-hero__subtitle {
+  color: rgba(248, 246, 241, 0.92);
+}
+.bs-hero--branchFinder .bs-eyebrow {
+  color: rgba(212, 175, 55, 0.95);
+}
+.bs-hero--branchFinder .bs-hero__title {
+  color: rgba(254, 253, 251, 0.98);
+}
+
 .bs-hero__title {
   font-family: 'Playfair Display', serif;
   font-weight: 700;
@@ -261,6 +291,21 @@ select {
 }
 .bs-btn--secondary:hover:not(:disabled) {
   border-color: rgba(10, 22, 40, 0.32);
+  transform: translateY(-1px);
+}
+
+.bs-btn--cta {
+  background: linear-gradient(135deg, var(--gold), #b88913);
+  color: white;
+  box-shadow: 0 18px 50px rgba(212, 175, 55, 0.18);
+}
+.bs-btn--cta:hover:not(:disabled) {
+  background: rgba(254, 253, 251, 0.96);
+  color: var(--midnight);
+  box-shadow:
+    0 22px 60px rgba(10, 22, 40, 0.18),
+    0 0 0 8px rgba(212, 175, 55, 0.14),
+    0 0 34px 14px rgba(212, 175, 55, 0.12);
   transform: translateY(-1px);
 }
 
@@ -466,6 +511,12 @@ select {
     padding: 0.55rem 0.75rem;
     font-size: 0.92rem;
   }
+  .bs-btn--cta:hover:not(:disabled) {
+    box-shadow:
+      0 16px 42px rgba(10, 22, 40, 0.16),
+      0 0 0 7px rgba(212, 175, 55, 0.14),
+      0 0 28px 12px rgba(212, 175, 55, 0.12);
+  }
   .bs-footer__content {
     grid-template-columns: 1fr;
   }
@@ -479,4 +530,18 @@ select {
     padding: 0.48rem 0.65rem;
     font-size: 0.88rem;
   }
+}
+.bs-header--onHero .bs-nav {
+  border-bottom-color: rgba(254, 253, 251, 0.08);
+}
+.bs-header--onHero .bs-logo,
+.bs-header--onHero .bs-nav__link {
+  color: rgba(254, 253, 251, 0.92);
+  text-shadow: 0 2px 18px rgba(10, 22, 40, 0.55);
+}
+.bs-header--onHero .bs-nav__link:hover {
+  color: rgba(254, 253, 251, 0.98);
+}
+.bs-header--onHero .bs-nav__link--active {
+  color: rgba(254, 253, 251, 0.98);
 }

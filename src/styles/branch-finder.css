@@ -246,8 +246,87 @@
   font-size: 0.86rem;
 }
 
+/* NOTE(skeleton): Reserve stable list/pager height while fetching branches so
+ * the map can size to the same cut-line on first paint.
+ */
+.finderList__status {
+  margin-bottom: 0.75rem;
+}
+.card--skeleton {
+  cursor: default;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.card--skeleton:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(10, 22, 40, 0.12);
+}
+.skeletonLine {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(10, 22, 40, 0.08);
+}
+.skeletonLine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
+  );
+  animation: bsShimmer 1200ms ease-in-out infinite;
+}
+@keyframes bsShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeletonLine--title {
+  width: 62%;
+  height: 16px;
+}
+.skeletonLine--meta {
+  width: 24%;
+  height: 14px;
+  border-radius: 999px;
+}
+.skeletonLine--body {
+  margin-top: 0.6rem;
+  width: 84%;
+  height: 14px;
+}
+.skeletonLine--sub {
+  margin-top: 0.55rem;
+  width: 52%;
+  height: 12px;
+}
+.skeletonLine--pagerMeta {
+  display: inline-block;
+  width: 230px;
+  height: 14px;
+}
+.pager__nav--skeleton {
+  gap: 0.7rem;
+}
+.skeletonLine--pagerBtn {
+  width: 86px;
+  height: 32px;
+  border-radius: 999px;
+}
+.skeletonLine--pagerPages {
+  width: 160px;
+  height: 26px;
+  border-radius: 12px;
+}
+
 .finderMap__leaflet {
   height: var(--finder-map-height, 520px);
+  box-sizing: border-box;
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid rgba(10, 22, 40, 0.12);
@@ -506,6 +585,13 @@
     grid-template-columns: 1fr;
   }
   .sidePanel {
-    width: calc(100% - 32px);
+    /* Full-bleed panel on mobile */
+    width: 100%;
+    left: 0;
+    padding: 0;
+  }
+  .sidePanel__content {
+    border-radius: 0;
+    height: 100%;
   }
 }

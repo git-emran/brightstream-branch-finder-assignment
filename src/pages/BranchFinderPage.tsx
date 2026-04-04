@@ -3,7 +3,7 @@ import { BranchFinder } from '../shared/branch-finder/BranchFinder'
 export function BranchFinderPage() {
   return (
     <>
-      <section className="bs-hero">
+      <section className="bs-hero bs-hero--branchFinder">
         <div className="bs-container">
           <p className="bs-eyebrow">Brightstream Branch Finder</p>
           <h1 className="bs-hero__title">Find a branch near you.</h1>
@@ -22,4 +22,3 @@ export function BranchFinderPage() {
     </>
   )
 }
-

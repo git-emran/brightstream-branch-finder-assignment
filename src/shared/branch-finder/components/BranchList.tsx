@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BranchWithComputed } from '../types'
 import { formatDistance, formatInlineAddress } from '../utils'
 import { LoadingState } from './LoadingState'
@@ -56,7 +56,7 @@ export function BranchList(props: Props) {
 
   const visible = useMemo(() => branches.slice(start, end), [branches, end, start])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const rootEl = rootRef.current
     const pagerEl = pagerRef.current
     if (!rootEl || !pagerEl) return
@@ -100,121 +100,165 @@ export function BranchList(props: Props) {
     }
   }, [])
 
-  if (status === 'loading') {
-    return <LoadingState label="Loading branches…" />
-  }
-
-  if (status === 'error') {
-    return (
-      <div className="bs-empty" role="status">
-        <h3 className="bs-empty__title">We couldn’t load branches</h3>
-        <p className="bs-empty__body">
-          Please refresh the page or try again later.
-        </p>
-        {import.meta.env.DEV && error?.message && (
-          <p className="bs-help bs-help--error">DEV: {error.message}</p>
-        )}
-      </div>
-    )
-  }
-
-  if (branches.length === 0) {
-    return (
-      <div className="bs-empty" role="status">
-        <h3 className="bs-empty__title">No matches</h3>
-        <p className="bs-empty__body">
-          Try a different search term or clear a filter.
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div ref={rootRef} className="finderList" aria-label="Branch results">
-      <ol className="finderList__items">
-        {visible.map((b) => {
-          const isSelected = b._id === selectedBranchId
-          return (
-            <li key={b._id}>
-              <button
-                type="button"
-                className={isSelected ? 'card card--active' : 'card'}
-                onClick={() => onSelectBranch(b)}
-              >
-                <div className="card__header">
-                  <h3 className="card__title">{b.Name}</h3>
-                  {b.distanceKm != null && (
-                    <span className="card__meta">
-                      {formatDistance(b.distanceKm)}
-                    </span>
-                  )}
+    <div
+      ref={rootRef}
+      className="finderList"
+      aria-label="Branch results"
+      aria-busy={status === 'loading'}
+    >
+      {status === 'loading' ? (
+        <>
+          <div className="finderList__status">
+            <LoadingState label="Loading branches…" />
+          </div>
+          <ol className="finderList__items" aria-hidden="true">
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              <li key={`skeleton-${i}`}>
+                <div className="card card--skeleton">
+                  <div className="card__header">
+                    <div className="skeletonLine skeletonLine--title" />
+                    <div className="skeletonLine skeletonLine--meta" />
+                  </div>
+                  <div className="skeletonLine skeletonLine--body" />
+                  <div className="skeletonLine skeletonLine--sub" />
                 </div>
-                <p className="card__body">{formatInlineAddress(b)}</p>
-                <p className="card__sub">
-                  {b.Phone ? b.Phone : 'Call us'} · {b.Email}
-                </p>
-              </button>
-            </li>
-          )
-        })}
-      </ol>
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : null}
+
+      {status === 'error' ? (
+        <div className="bs-empty" role="status">
+          <h3 className="bs-empty__title">We couldn’t load branches</h3>
+          <p className="bs-empty__body">
+            Please refresh the page or try again later.
+          </p>
+          {import.meta.env.DEV && error?.message && (
+            <p className="bs-help bs-help--error">DEV: {error.message}</p>
+          )}
+        </div>
+      ) : null}
+
+      {status === 'success' && branches.length === 0 ? (
+        <div className="bs-empty" role="status">
+          <h3 className="bs-empty__title">No matches</h3>
+          <p className="bs-empty__body">
+            Try a different search term or clear a filter.
+          </p>
+        </div>
+      ) : null}
+
+      {status === 'success' && branches.length > 0 ? (
+        <ol className="finderList__items">
+          {visible.map((b) => {
+            const isSelected = b._id === selectedBranchId
+            return (
+              <li key={b._id}>
+                <button
+                  type="button"
+                  className={isSelected ? 'card card--active' : 'card'}
+                  onClick={() => onSelectBranch(b)}
+                >
+                  <div className="card__header">
+                    <h3 className="card__title">{b.Name}</h3>
+                    {b.distanceKm != null && (
+                      <span className="card__meta">
+                        {formatDistance(b.distanceKm)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="card__body">{formatInlineAddress(b)}</p>
+                  <p className="card__sub">
+                    {b.Phone ? b.Phone : 'Call us'} · {b.Email}
+                  </p>
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      ) : null}
 
       <div ref={pagerRef} className="pager" aria-label="Pagination">
-        <div className="pager__meta">
-          Showing <strong>{(start + 1).toLocaleString()}</strong>–
-          <strong>{end.toLocaleString()}</strong> of{' '}
-          <strong>{totalItems.toLocaleString()}</strong>
-        </div>
-
-        <div className="pager__controls">
-          <nav className="pager__nav" aria-label="Branch pages">
-            <button
-              type="button"
-              className="bs-btn bs-btn--secondary pager__btn"
-              onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-              disabled={safePageIndex === 0}
-            >
-              Previous
-            </button>
-
-            <div className="pager__pages" role="list">
-              {getPageItems(currentPage, totalPages).map((item, i) => {
-                if (item === '…') {
-                  return (
-                    // NOTE(pagination): non-interactive separator
-                    <span key={`ellipsis-${i}`} className="pager__ellipsis">
-                      …
-                    </span>
-                  )
-                }
-
-                const isCurrent = item === currentPage
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    className={isCurrent ? 'pager__page pager__page--active' : 'pager__page'}
-                    aria-current={isCurrent ? 'page' : undefined}
-                    onClick={() => setPageIndex(item - 1)}
-                  >
-                    {item}
-                  </button>
-                )
-              })}
+        {status === 'success' && branches.length > 0 ? (
+          <>
+            <div className="pager__meta">
+              Showing <strong>{(start + 1).toLocaleString()}</strong>–
+              <strong>{end.toLocaleString()}</strong> of{' '}
+              <strong>{totalItems.toLocaleString()}</strong>
             </div>
 
-            <button
-              type="button"
-              className="bs-btn bs-btn--secondary pager__btn"
-              onClick={() =>
-                setPageIndex((p) => Math.min(totalPages - 1, p + 1))
-              }
-              disabled={safePageIndex >= totalPages - 1}
-            >
-              Next
-            </button>
-          </nav>
-        </div>
+            <div className="pager__controls">
+              <nav className="pager__nav" aria-label="Branch pages">
+                <button
+                  type="button"
+                  className="bs-btn bs-btn--secondary pager__btn"
+                  onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                  disabled={safePageIndex === 0}
+                >
+                  Previous
+                </button>
+
+                <div className="pager__pages" role="list">
+                  {getPageItems(currentPage, totalPages).map((item, i) => {
+                    if (item === '…') {
+                      return (
+                        // NOTE(pagination): non-interactive separator
+                        <span key={`ellipsis-${i}`} className="pager__ellipsis">
+                          …
+                        </span>
+                      )
+                    }
+
+                    const isCurrent = item === currentPage
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        className={
+                          isCurrent
+                            ? 'pager__page pager__page--active'
+                            : 'pager__page'
+                        }
+                        aria-current={isCurrent ? 'page' : undefined}
+                        onClick={() => setPageIndex(item - 1)}
+                      >
+                        {item}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  className="bs-btn bs-btn--secondary pager__btn"
+                  onClick={() =>
+                    setPageIndex((p) => Math.min(totalPages - 1, p + 1))
+                  }
+                  disabled={safePageIndex >= totalPages - 1}
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          </>
+        ) : (
+          // NOTE(layout): Keep the separator line stable even while loading,
+          // so the map can size to the same cut-line on first paint.
+          <>
+            <div className="pager__meta" aria-hidden="true">
+              <span className="skeletonLine skeletonLine--pagerMeta" />
+            </div>
+            <div className="pager__controls" aria-hidden="true">
+              <div className="pager__nav pager__nav--skeleton">
+                <span className="skeletonLine skeletonLine--pagerBtn" />
+                <span className="skeletonLine skeletonLine--pagerPages" />
+                <span className="skeletonLine skeletonLine--pagerBtn" />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -119,6 +119,8 @@ export function BranchFinder() {
   }, [branchesQuery.status, filteredBranches.length])
 
   const listKey = `${countryCode}:${city}:${searchText}`
+  const resultsFocusKey =
+    countryCode !== 'all' || city !== 'all' ? `${countryCode}:${city}` : null
 
   function openPanel(mode: PanelMode) {
     setIsPanelOpen(true)
@@ -193,6 +195,7 @@ export function BranchFinder() {
             }}
             userLocation={geo.location}
             route={route}
+            resultsFocusKey={resultsFocusKey}
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import {
   CircleMarker,
@@ -24,15 +24,19 @@ type Props = {
   onSelectBranchId: (id: string) => void
   userLocation: LatLng | null
   route: DirectionsRoute | null
+  resultsFocusKey?: string | null
 }
 
 function MapEffects(props: {
   selected: BranchWithComputed | null
   userLocation: LatLng | null
   route: DirectionsRoute | null
+  resultsFocusKey?: string | null
+  resultsCoords: LatLng[]
 }) {
-  const { selected, userLocation, route } = props
+  const { selected, userLocation, route, resultsFocusKey, resultsCoords } = props
   const map = useMap()
+  const lastResultsFocusKey = useRef<string | null>(null)
 
   useEffect(() => {
     // NOTE(leaflet): Map container height can be driven by surrounding layout.
@@ -53,10 +57,33 @@ function MapEffects(props: {
       return
     }
 
+    // NOTE(ux): When the user applies a country/city filter, focus the filtered
+    // set of branches rather than snapping back to the user's location.
+    if (resultsFocusKey) {
+      if (resultsFocusKey !== lastResultsFocusKey.current) {
+        lastResultsFocusKey.current = resultsFocusKey
+
+        if (resultsCoords.length === 1) {
+          map.flyTo(resultsCoords[0], Math.max(map.getZoom(), 6), {
+            duration: 0.6,
+          })
+          return
+        }
+
+        if (resultsCoords.length > 1) {
+          const bounds = L.latLngBounds(resultsCoords.map((p) => [p.lat, p.lng]))
+          map.fitBounds(bounds.pad(0.18))
+          return
+        }
+      }
+    } else if (lastResultsFocusKey.current !== null) {
+      lastResultsFocusKey.current = null
+    }
+
     if (userLocation) {
       map.flyTo(userLocation, Math.max(map.getZoom(), 4), { duration: 0.6 })
     }
-  }, [map, route, selected, userLocation])
+  }, [map, resultsCoords, resultsFocusKey, route, selected, userLocation])
 
   return null
 }
@@ -75,8 +102,14 @@ function MapZoomWatcher(props: { onZoomChange: (zoom: number) => void }) {
 }
 
 export function BranchMap(props: Props) {
-  const { branches, selectedBranchId, onSelectBranchId, userLocation, route } =
-    props
+  const {
+    branches,
+    selectedBranchId,
+    onSelectBranchId,
+    userLocation,
+    route,
+    resultsFocusKey,
+  } = props
 
   useEffect(() => {
     configureLeafletDefaultIcon(L)
@@ -90,6 +123,11 @@ export function BranchMap(props: Props) {
       .map((b) => ({ ...b, coords: b.coords ?? parseCoordinates(b.Coordinates) }))
       .filter((b) => Boolean(b.coords))
   }, [branches])
+
+  const resultsCoords: LatLng[] = useMemo(
+    () => branchesWithCoords.map((b) => b.coords!) as LatLng[],
+    [branchesWithCoords],
+  )
 
   const selected =
     selectedBranchId == null
@@ -115,7 +153,13 @@ export function BranchMap(props: Props) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <MapEffects selected={selected} userLocation={userLocation} route={route} />
+        <MapEffects
+          selected={selected}
+          userLocation={userLocation}
+          route={route}
+          resultsFocusKey={resultsFocusKey}
+          resultsCoords={resultsCoords}
+        />
         <MapZoomWatcher onZoomChange={setZoom} />
 
         {userLocation && (
