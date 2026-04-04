@@ -48,6 +48,53 @@ select {
   font: inherit;
 }
 
+.bs-inputWrap {
+  position: relative;
+  display: grid;
+}
+
+.bs-input--withIcon {
+  padding-right: 3rem;
+}
+
+.bs-inputIconBtn {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(10, 22, 40, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(10, 22, 40, 0.7);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+.bs-inputIconBtn:hover:not(:disabled) {
+  border-color: rgba(10, 22, 40, 0.26);
+  box-shadow: 0 10px 24px rgba(10, 22, 40, 0.12);
+}
+.bs-inputIconBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.bs-inputIconBtn--loading::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 999px;
+  border: 2px solid rgba(10, 22, 40, 0.2);
+  border-top-color: rgba(10, 22, 40, 0.65);
+  animation: spin 820ms linear infinite;
+}
+
 .bs-app {
   min-height: 100dvh;
   display: flex;
@@ -62,7 +109,10 @@ select {
 .bs-header {
   position: fixed;
   inset: 0 0 auto 0;
-  z-index: 50;
+  /* NOTE(z-index): Leaflet controls/tooltips use high z-index values (up to ~1000).
+   * Keep the fixed site chrome above map UI while scrolling.
+   */
+  z-index: 4000;
 }
 
 .bs-nav {
@@ -214,6 +264,44 @@ select {
   transform: translateY(-1px);
 }
 
+.bs-iconBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: linear-gradient(135deg, var(--deep-teal), var(--navy));
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+.bs-iconBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.bs-iconBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.bs-iconBtn--loading {
+  position: relative;
+}
+.bs-iconBtn--loading::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  animation: spin 820ms linear infinite;
+}
+
 .bs-segment {
   border: 1px solid rgba(10, 22, 40, 0.16);
   background: rgba(255, 255, 255, 0.86);
@@ -243,10 +331,27 @@ select {
   border: 1px solid rgba(10, 22, 40, 0.14);
   border-radius: 14px;
   padding: 0.85rem 0.95rem;
+  font-size: 0.95rem;
+  color: rgba(10, 22, 40, 0.76);
   outline: none;
   transition:
     box-shadow 160ms ease,
     border-color 160ms ease;
+}
+
+.bs-input::placeholder {
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.bs-select {
+  /* NOTE(select): Normalize right padding across browsers by rendering our own chevron. */
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.6rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 10l5 5 5-5' stroke='rgba(10,22,40,0.55)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: calc(100% - 0.95rem) 50%;
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
 }
 .bs-input:focus,
 .bs-select:focus {
@@ -351,10 +456,27 @@ select {
   .bs-nav__links {
     display: none;
   }
+  .bs-nav {
+    padding: 0.9rem 0;
+  }
+  .bs-nav__actions {
+    gap: 0.5rem;
+  }
+  .bs-nav__actions .bs-btn {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.92rem;
+  }
   .bs-footer__content {
     grid-template-columns: 1fr;
   }
   .bs-footer__links {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .bs-nav__actions .bs-btn {
+    padding: 0.48rem 0.65rem;
+    font-size: 0.88rem;
   }
 }

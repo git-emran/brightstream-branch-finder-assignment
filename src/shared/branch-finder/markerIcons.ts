@@ -30,14 +30,15 @@ function createIcon(svg: string) {
 }
 
 const defaultIcon = createIcon(
-  createPinSvg({ fill: '#0d4d56', stroke: '#d4af37', dot: '#fefdfb' }),
+  // Default: neutral gray with dark border.
+  createPinSvg({ fill: '#e2e8f0', stroke: '#0a1628', dot: '#64748b' }),
 )
 
 const selectedIcon = createIcon(
-  createPinSvg({ fill: '#1a2942', stroke: '#d4af37', dot: '#d4af37' }),
+  // Selected: brand green with gold border.
+  createPinSvg({ fill: '#0d4d56', stroke: '#d4af37', dot: '#fefdfb' }),
 )
 
 export function getBranchMarkerIcon(isSelected: boolean) {
   return isSelected ? selectedIcon : defaultIcon
 }
-

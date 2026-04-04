@@ -25,35 +25,93 @@
   color: var(--slate);
 }
 
+.finder__metaSub {
+  color: rgba(100, 116, 139, 0.92);
+}
+
 .finder__viewToggle {
   display: none;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.finder__filters {
+.finderFilters {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.finderFilters__grid {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 0.9rem;
+}
+
+.finderFilters__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
   align-items: end;
 }
 
-.finder__geo {
-  display: grid;
-  align-content: start;
+.filterChips {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filterChips__list {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid rgba(10, 22, 40, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  color: rgba(10, 22, 40, 0.82);
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 0.9rem;
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.chip:hover {
+  border-color: rgba(10, 22, 40, 0.24);
+}
+.chip__x {
+  color: rgba(10, 22, 40, 0.55);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.chip--clear {
+  border-style: dashed;
+  background: rgba(248, 246, 241, 0.65);
 }
 
 .finder__layout {
   margin-top: 1rem;
   display: grid;
   grid-template-columns: 1.05fr 1.35fr;
+  grid-template-areas: 'list map';
   gap: 1rem;
   align-items: start;
 }
 
 .finder__panel {
   min-height: 480px;
+}
+
+.finder__panel--list {
+  grid-area: list;
+}
+.finder__panel--map {
+  grid-area: map;
 }
 
 .finder__panel--inactive {
@@ -110,11 +168,12 @@
 .pager__page {
   border: 1px solid rgba(10, 22, 40, 0.16);
   background: rgba(255, 255, 255, 0.86);
-  padding: 0.45rem 0.7rem;
+  padding: 0.27rem 0.42rem; /* ~40% smaller */
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   color: var(--navy);
+  font-size: 0.9rem;
 }
 .pager__page:hover {
   border-color: rgba(10, 22, 40, 0.28);
@@ -129,6 +188,11 @@
   color: rgba(10, 22, 40, 0.5);
   padding: 0 0.2rem;
   font-weight: 600;
+}
+
+.pager__btn {
+  padding: 0.51rem 0.72rem; /* ~40% smaller than base button */
+  font-size: 0.9rem;
 }
 
 .card {
@@ -174,23 +238,29 @@
 .card__body {
   margin: 0.35rem 0 0;
   color: rgba(10, 22, 40, 0.78);
+  font-size: 0.92rem;
 }
 .card__sub {
   margin: 0.3rem 0 0;
   color: var(--slate);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 
 .finderMap__leaflet {
-  height: 520px;
+  height: var(--finder-map-height, 520px);
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid rgba(10, 22, 40, 0.12);
+  /* Ensure Leaflet UI doesn't float above fixed header/panels. */
+  z-index: 1;
 }
 
 .mapPopup__title {
   font-weight: 600;
   margin-bottom: 0.2rem;
+}
+.mapPopup__body {
+  color: rgba(10, 22, 40, 0.78);
 }
 
 /* Leaflet tooltip label styling for branch names */
@@ -218,7 +288,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
-  z-index: 55;
+  z-index: 3000;
 }
 .sidePanelScrim--open {
   opacity: 1;
@@ -231,7 +301,7 @@
   top: 88px;
   height: calc(100dvh - 88px);
   width: min(420px, calc(100% - 32px));
-  z-index: 60;
+  z-index: 3500;
   transform: translateX(calc(-100% - 16px));
   transition: transform 220ms ease;
   padding: 16px;
@@ -248,7 +318,9 @@
   box-shadow: var(--shadow-md);
   padding: 1rem;
   backdrop-filter: blur(10px);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .sidePanel__header {
@@ -291,17 +363,48 @@
   color: rgba(10, 22, 40, 0.9);
 }
 
-.sidePanel__tabs {
+.sidePanelTabs {
   margin-top: 0.9rem;
-  display: inline-flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(10, 22, 40, 0.12);
+}
+
+.sidePanelTab {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.6rem 0.1rem;
+  font-weight: 600;
+  color: rgba(10, 22, 40, 0.62);
+  position: relative;
+}
+.sidePanelTab:hover {
+  color: rgba(10, 22, 40, 0.86);
+}
+.sidePanelTab--active {
+  color: var(--midnight);
+}
+.sidePanelTab--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), rgba(212, 175, 55, 0));
 }
 
 .sidePanel__body {
   margin-top: 1rem;
   display: grid;
   gap: 0.85rem;
+  min-height: 0;
+}
+
+.sidePanel__body--directions {
+  display: flex;
+  flex-direction: column;
 }
 
 .sidePanel__block {
@@ -336,15 +439,21 @@
   font-weight: 600;
 }
 
-.sidePanel__directionsActions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
 .sidePanel__directions {
   margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sidePanel__stepsWrap {
+  /* NOTE(layout): Only the directions list scrolls; header/tabs/form stay fixed. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  min-height: 0;
+  flex: 1;
+  padding-right: 0.25rem;
 }
 
 .sidePanel__routeSummary {
@@ -372,16 +481,17 @@
 
 @media (max-width: 980px) {
   .finder__viewToggle {
-    display: inline-flex;
+    display: none;
   }
-  .finder__filters {
+  .finderFilters__row {
     grid-template-columns: 1fr 1fr;
   }
   .finder__layout {
     grid-template-columns: 1fr;
+    grid-template-areas: 'map' 'list';
   }
   .finder__panel--inactive {
-    display: none;
+    display: block;
   }
   .finder__panel {
     min-height: auto;
@@ -392,7 +502,7 @@
 }
 
 @media (max-width: 640px) {
-  .finder__filters {
+  .finderFilters__row {
     grid-template-columns: 1fr;
   }
   .sidePanel {

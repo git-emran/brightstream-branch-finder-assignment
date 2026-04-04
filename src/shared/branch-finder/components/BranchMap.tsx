@@ -16,7 +16,7 @@ import type { LatLng } from '../../../shared/geo'
 import type { DirectionsRoute } from '../routing'
 import { configureLeafletDefaultIcon } from '../leaflet'
 import { getBranchMarkerIcon } from '../markerIcons'
-import { parseCoordinates } from '../utils'
+import { formatInlineAddress, parseCoordinates } from '../utils'
 
 type Props = {
   branches: BranchWithComputed[]
@@ -33,6 +33,13 @@ function MapEffects(props: {
 }) {
   const { selected, userLocation, route } = props
   const map = useMap()
+
+  useEffect(() => {
+    // NOTE(leaflet): Map container height can be driven by surrounding layout.
+    // Ensure the map recalculates tiles after layout-driven height changes.
+    const t = window.setTimeout(() => map.invalidateSize(), 0)
+    return () => window.clearTimeout(t)
+  }, [map, route, selected?.coords?.lat, selected?.coords?.lng])
 
   useEffect(() => {
     if (route?.geometry?.length) {
@@ -143,6 +150,7 @@ export function BranchMap(props: Props) {
             <Popup>
               <div className="mapPopup">
                 <div className="mapPopup__title">{b.Name}</div>
+                <div className="mapPopup__body">{formatInlineAddress(b)}</div>
               </div>
             </Popup>
             <Tooltip

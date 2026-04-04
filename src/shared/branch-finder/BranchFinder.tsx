@@ -13,7 +13,6 @@ import {
   parseCoordinates,
 } from './utils'
 
-type ViewMode = 'list' | 'map'
 type PanelMode = 'details' | 'directions'
 
 export function BranchFinder() {
@@ -23,8 +22,8 @@ export function BranchFinder() {
   const [query, setQuery] = useState('')
   const [countryCode, setCountryCode] = useState<string>('all')
   const [city, setCity] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [panelMode, setPanelMode] = useState<PanelMode>('details')
   const [originText, setOriginText] = useState('')
   const [route, setRoute] = useState<DirectionsRoute | null>(null)
@@ -121,42 +120,30 @@ export function BranchFinder() {
 
   const listKey = `${countryCode}:${city}:${searchText}`
 
+  function openPanel(mode: PanelMode) {
+    setIsPanelOpen(true)
+    setPanelMode(mode)
+  }
+
   return (
     <div className="finder">
       <div className="finder__header">
         <div>
           <h2 className="finder__title">Find a Brightstream branch</h2>
-          <p className="finder__meta">{statsLabel}</p>
+          <p className="finder__meta">
+            {statsLabel}
+            {geo.location && geo.status !== 'error' ? (
+              <>
+                <br />
+                <span className="finder__metaSub">
+                  Sorting by nearest branches.
+                </span>
+              </>
+            ) : null}
+          </p>
         </div>
 
-        <div className="finder__viewToggle" role="tablist" aria-label="View">
-          <button
-            type="button"
-            className={
-              viewMode === 'list'
-                ? 'bs-segment bs-segment--active'
-                : 'bs-segment'
-            }
-            onClick={() => setViewMode('list')}
-            role="tab"
-            aria-selected={viewMode === 'list'}
-          >
-            List
-          </button>
-          <button
-            type="button"
-            className={
-              viewMode === 'map'
-                ? 'bs-segment bs-segment--active'
-                : 'bs-segment'
-            }
-            onClick={() => setViewMode('map')}
-            role="tab"
-            aria-selected={viewMode === 'map'}
-          >
-            Map
-          </button>
-        </div>
+        <div />
       </div>
 
       <BranchFilters
@@ -172,16 +159,15 @@ export function BranchFinder() {
         countries={countries}
         cities={cities}
         geolocation={geo}
+        onLocateMe={() => geo.request()}
+        onClearFilters={() => {
+          setCountryCode('all')
+          setCity('all')
+        }}
       />
 
       <div className="finder__layout">
-        <div
-          className={
-            viewMode === 'list'
-              ? 'finder__panel finder__panel--active'
-              : 'finder__panel finder__panel--inactive'
-          }
-        >
+        <div className="finder__panel finder__panel--list">
           <BranchList
             key={listKey}
             status={branchesQuery.status}
@@ -190,26 +176,20 @@ export function BranchFinder() {
             selectedBranchId={selectedBranchId}
             onSelectBranch={(b) => {
               setSelectedBranchId(b._id)
-              setPanelMode('details')
               setRoute(null)
+              openPanel('details')
             }}
           />
         </div>
 
-        <div
-          className={
-            viewMode === 'map'
-              ? 'finder__panel finder__panel--active'
-              : 'finder__panel finder__panel--inactive'
-          }
-        >
+        <div className="finder__panel finder__panel--map">
           <BranchMap
             branches={filteredBranches}
             selectedBranchId={selectedBranchId}
             onSelectBranchId={(id) => {
               setSelectedBranchId(id)
-              setPanelMode('details')
               setRoute(null)
+              openPanel('details')
             }}
             userLocation={geo.location}
             route={route}
@@ -218,12 +198,14 @@ export function BranchFinder() {
       </div>
 
       <BranchSidePanel
-        branch={selectedBranch}
+        branch={isPanelOpen ? selectedBranch : null}
         mode={panelMode}
         onModeChange={(m) => {
-          setPanelMode(m)
-          // NOTE(ux): Directions are shown in-app on the map; ensure the map is visible.
-          if (m === 'directions') setViewMode('map')
+          // NOTE(ux): Directions default to the user's current location.
+          if (m === 'directions' && !geo.location && geo.status !== 'loading') {
+            geo.request()
+          }
+          openPanel(m)
         }}
         userLocation={geo.location}
         geolocation={geo}
@@ -232,7 +214,7 @@ export function BranchFinder() {
         route={route}
         onRouteChange={setRoute}
         onClose={() => {
-          setSelectedBranchId(null)
+          setIsPanelOpen(false)
           setPanelMode('details')
           setRoute(null)
         }}

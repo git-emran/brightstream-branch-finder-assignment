@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BranchWithComputed } from '../types'
 import { formatDistance, formatInlineAddress } from '../utils'
 import { LoadingState } from './LoadingState'
@@ -43,6 +43,8 @@ function getPageItems(currentPage: number, totalPages: number) {
 export function BranchList(props: Props) {
   const { status, branches, error, selectedBranchId, onSelectBranch } = props
   const [pageIndex, setPageIndex] = useState(0) // 0-based
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const pagerRef = useRef<HTMLDivElement | null>(null)
 
   const totalItems = branches.length
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
@@ -53,6 +55,50 @@ export function BranchList(props: Props) {
   const end = Math.min(start + PAGE_SIZE, totalItems)
 
   const visible = useMemo(() => branches.slice(start, end), [branches, end, start])
+
+  useEffect(() => {
+    const rootEl = rootRef.current
+    const pagerEl = pagerRef.current
+    if (!rootEl || !pagerEl) return
+
+    const finderCandidate = rootEl.closest('.finder')
+    if (!(finderCandidate instanceof HTMLElement)) return
+
+    // NOTE(layout): Assign to non-null locals so TS understands these are stable.
+    const rootNode: HTMLDivElement = rootEl
+    const pagerNode: HTMLDivElement = pagerEl
+    const finderNode: HTMLElement = finderCandidate
+
+    const mq = window.matchMedia('(min-width: 981px)')
+
+    function update() {
+      if (!mq.matches) {
+        finderNode.style.removeProperty('--finder-map-height')
+        return
+      }
+
+      const rootRect = rootNode.getBoundingClientRect()
+      const pagerRect = pagerNode.getBoundingClientRect()
+      const px = Math.max(320, Math.round(pagerRect.top - rootRect.top))
+      finderNode.style.setProperty('--finder-map-height', `${px}px`)
+    }
+
+    update()
+
+    const ro = new ResizeObserver(update)
+    ro.observe(rootNode)
+    ro.observe(pagerNode)
+
+    window.addEventListener('resize', update)
+    mq.addEventListener('change', update)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+      mq.removeEventListener('change', update)
+      finderNode.style.removeProperty('--finder-map-height')
+    }
+  }, [])
 
   if (status === 'loading') {
     return <LoadingState label="Loading branches…" />
@@ -84,7 +130,7 @@ export function BranchList(props: Props) {
   }
 
   return (
-    <div className="finderList" aria-label="Branch results">
+    <div ref={rootRef} className="finderList" aria-label="Branch results">
       <ol className="finderList__items">
         {visible.map((b) => {
           const isSelected = b._id === selectedBranchId
@@ -113,7 +159,7 @@ export function BranchList(props: Props) {
         })}
       </ol>
 
-      <div className="pager" aria-label="Pagination">
+      <div ref={pagerRef} className="pager" aria-label="Pagination">
         <div className="pager__meta">
           Showing <strong>{(start + 1).toLocaleString()}</strong>–
           <strong>{end.toLocaleString()}</strong> of{' '}

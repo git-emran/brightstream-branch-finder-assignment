@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Branch } from '../types'
 import type { LatLng } from '../../../shared/geo'
 import {
@@ -7,13 +7,13 @@ import {
   formatInlineAddress,
   parseCoordinates,
 } from '../utils'
-import type { GeolocationState } from '../hooks/useGeolocation'
 import {
   fetchDirectionsRoute,
   formatDuration,
   geocodeOrigin,
   type DirectionsRoute,
 } from '../routing'
+import type { GeolocationState } from '../hooks/useGeolocation'
 
 type PanelMode = 'details' | 'directions'
 
@@ -58,6 +58,8 @@ export function BranchSidePanel(props: Props) {
     useState<DirectionsStatus>('idle')
   const [directionsError, setDirectionsError] = useState<string | null>(null)
   const [directionsRequestId, setDirectionsRequestId] = useState(0)
+  const lastRouteKeyRef = useRef<string | null>(null)
+  const routeCacheRef = useRef<Map<string, DirectionsRoute>>(new Map())
 
   // NOTE(directions): Auto-fetch once we have browser geolocation (reliable)
   // and the user is viewing the directions tab.
@@ -69,13 +71,25 @@ export function BranchSidePanel(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branch?._id, coords?.lat, coords?.lng, isOpen, mode, userLocation?.lat, userLocation?.lng])
 
+  // NOTE(directions): Debounce routing requests while typing an origin address.
   useEffect(() => {
-    if (!isOpen || mode !== 'directions') {
-      setDirectionsStatus('idle')
-      setDirectionsError(null)
-      onRouteChange(null)
-      return
-    }
+    if (!isOpen || mode !== 'directions') return
+    if (userLocation) return
+    if (!originText.trim()) return
+
+    const t = setTimeout(() => setDirectionsRequestId((n) => n + 1), 450)
+    return () => clearTimeout(t)
+  }, [isOpen, mode, originText, userLocation])
+
+  // NOTE(directions-cache): Reset the "current route key" when switching branches,
+  // but keep the full cache so revisiting branches is instant.
+  useEffect(() => {
+    lastRouteKeyRef.current = null
+  }, [branch?._id])
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (mode !== 'directions') return
 
     if (!branch) return
 
@@ -91,14 +105,34 @@ export function BranchSidePanel(props: Props) {
     if (directionsRequestId === 0) {
       setDirectionsStatus('idle')
       setDirectionsError(null)
-      onRouteChange(null)
       return
     }
 
     if (!userLocation && !originText.trim()) {
       setDirectionsStatus('error')
       setDirectionsError('Enter a starting address or use your location.')
-      onRouteChange(null)
+      return
+    }
+
+    const originKey = userLocation
+      ? `geo:${userLocation.lat.toFixed(6)},${userLocation.lng.toFixed(6)}`
+      : `text:${originText.trim().toLowerCase()}`
+    const routeKey = `${branch._id}:${originKey}`
+
+    // NOTE(directions-cache): Avoid re-fetching directions when toggling tabs.
+    if (route && lastRouteKeyRef.current === routeKey) {
+      setDirectionsStatus('success')
+      setDirectionsError(null)
+      return
+    }
+
+    const cached = routeCacheRef.current.get(routeKey)
+    if (cached) {
+      // NOTE(directions-cache): Persist directions per-branch/per-origin across revisits.
+      onRouteChange(cached)
+      lastRouteKeyRef.current = routeKey
+      setDirectionsStatus('success')
+      setDirectionsError(null)
       return
     }
 
@@ -118,6 +152,8 @@ export function BranchSidePanel(props: Props) {
       if (cancelled) return
 
       onRouteChange(nextRoute)
+      routeCacheRef.current.set(routeKey, nextRoute)
+      lastRouteKeyRef.current = routeKey
       setDirectionsStatus('success')
     }
 
@@ -141,6 +177,7 @@ export function BranchSidePanel(props: Props) {
     isOpen,
     mode,
     originText,
+    route,
     userLocation,
   ])
 
@@ -180,13 +217,13 @@ export function BranchSidePanel(props: Props) {
             </button>
           </div>
 
-          <div className="sidePanel__tabs" role="tablist" aria-label="Panel tabs">
+          <div className="sidePanelTabs" role="tablist" aria-label="Panel tabs">
             <button
               type="button"
               className={
                 mode === 'details'
-                  ? 'bs-segment bs-segment--active'
-                  : 'bs-segment'
+                  ? 'sidePanelTab sidePanelTab--active'
+                  : 'sidePanelTab'
               }
               onClick={() => onModeChange('details')}
               role="tab"
@@ -198,8 +235,8 @@ export function BranchSidePanel(props: Props) {
               type="button"
               className={
                 mode === 'directions'
-                  ? 'bs-segment bs-segment--active'
-                  : 'bs-segment'
+                  ? 'sidePanelTab sidePanelTab--active'
+                  : 'sidePanelTab'
               }
               onClick={() => onModeChange('directions')}
               role="tab"
@@ -231,7 +268,7 @@ export function BranchSidePanel(props: Props) {
           )}
 
           {mode === 'directions' && branch && (
-            <div className="sidePanel__body">
+            <div className="sidePanel__body sidePanel__body--directions">
               <div className="sidePanel__directionsForm">
                 <div className="bs-field">
                   <label className="bs-label" htmlFor="origin">
@@ -240,46 +277,62 @@ export function BranchSidePanel(props: Props) {
                   {userLocation ? (
                     <div className="sidePanel__originPill">Your location</div>
                   ) : (
-                    <input
-                      id="origin"
-                      className="bs-input"
-                      placeholder="Enter a starting address"
-                      value={originText}
-                      onChange={(e) => onOriginTextChange(e.target.value)}
-                    />
+                    <div className="bs-inputWrap">
+                      <input
+                        id="origin"
+                        className="bs-input bs-input--withIcon"
+                        placeholder="Enter a starting address"
+                        value={originText}
+                        onChange={(e) => onOriginTextChange(e.target.value)}
+                        onBlur={() => setDirectionsRequestId((n) => n + 1)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter')
+                            setDirectionsRequestId((n) => n + 1)
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className={
+                          geolocation.status === 'loading'
+                            ? 'bs-inputIconBtn bs-inputIconBtn--loading'
+                            : 'bs-inputIconBtn'
+                        }
+                        onClick={() => geolocation.request()}
+                        disabled={geolocation.status === 'loading'}
+                        aria-label="Locate me"
+                        title="Locate me"
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M12 2v3m0 14v3M2 12h3m14 0h3"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="1.5"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   )}
-                  {!userLocation && (
-                    <p className="bs-help">
-                      Tip: use “Use my location” for the most reliable routing.
-                    </p>
-                  )}
-                </div>
-
-                <div className="sidePanel__directionsActions">
-                  <button
-                    type="button"
-                    className="bs-btn bs-btn--primary"
-                    onClick={() => geolocation.request()}
-                    disabled={geolocation.status === 'loading'}
-                  >
-                    {geolocation.status === 'loading'
-                      ? 'Locating…'
-                      : userLocation
-                        ? 'Update my location'
-                        : 'Use my location'}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="bs-btn bs-btn--secondary"
-                    onClick={() => setDirectionsRequestId((n) => n + 1)}
-                    disabled={
-                      directionsStatus === 'loading' ||
-                      (!userLocation && !originText.trim())
-                    }
-                  >
-                    Get directions
-                  </button>
                 </div>
               </div>
 
@@ -302,17 +355,21 @@ export function BranchSidePanel(props: Props) {
                     {formatDistance(route.distanceMeters / 1000)} ·{' '}
                     {formatDuration(route.durationSeconds)}
                   </div>
-                  <ol className="sidePanel__steps">
-                    {route.steps.map((s, idx) => (
-                      <li key={idx} className="sidePanel__step">
-                        <div className="sidePanel__stepText">{s.instruction}</div>
-                        <div className="sidePanel__stepMeta">
-                          {formatDistance(s.distanceMeters / 1000)} ·{' '}
-                          {formatDuration(s.durationSeconds)}
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
+                  <div className="sidePanel__stepsWrap">
+                    <ol className="sidePanel__steps">
+                      {route.steps.map((s, idx) => (
+                        <li key={idx} className="sidePanel__step">
+                          <div className="sidePanel__stepText">
+                            {s.instruction}
+                          </div>
+                          <div className="sidePanel__stepMeta">
+                            {formatDistance(s.distanceMeters / 1000)} ·{' '}
+                            {formatDuration(s.durationSeconds)}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 </div>
               )}
             </div>
