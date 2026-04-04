@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Resources - Brightstream Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --midnight: #0a1628;
+            --navy: #1a2942;
+            --sage: #8b9d83;
+            --cream: #f8f6f1;
+            --gold: #d4af37;
+            --warm-white: #fefdfb;
+            --slate: #64748b;
+            --deep-teal: #0d4d56;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            color: var(--midnight);
+            background: var(--warm-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 22, 40, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(10, 22, 40, 0.1);
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--warm-white);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .nav-cta:after {
+            display: none;
+        }
+
+        .nav-cta {
+            background: var(--gold);
+            color: var(--midnight);
+            padding: 0.7rem 1.8rem;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            background: var(--warm-white);
+            color: var(--midnight);
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            height: 50vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 80px;
+            background: linear-gradient(135deg, var(--midnight), var(--deep-teal));
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 6vw, 4.5rem);
+            font-weight: 700;
+            color: var(--warm-white);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            color: var(--cream);
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .content-section {
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            max-width: 800px;
+            margin: 0 auto 4rem;
+            text-align: center;
+        }
+
+        .filter-tags {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .tag {
+            padding: 0.6rem 1.5rem;
+            background: var(--cream);
+            color: var(--midnight);
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tag:hover,
+        .tag.active {
+            background: var(--midnight);
+            color: var(--warm-white);
+            border-color: var(--gold);
+        }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 3rem;
+        }
+
+        .article-card {
+            background: var(--cream);
+            border-radius: 25px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(10, 22, 40, 0.15);
+        }
+
+        .article-image {
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .article-category {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: var(--gold);
+            color: var(--midnight);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .article-content {
+            padding: 2.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--slate);
+        }
+
+        .article-content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--midnight);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .article-excerpt {
+            color: var(--slate);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            flex: 1;
+        }
+
+        .article-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .article-link:hover {
+            gap: 1rem;
+        }
+
+        .featured-section {
+            background: var(--midnight);
+            padding: 6rem 5%;
+            color: var(--warm-white);
+        }
+
+        .featured-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: center;
+        }
+
+        .featured-image {
+            height: 500px;
+            background: url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1000&q=90') center/cover;
+            border-radius: 25px;
+        }
+
+        .featured-text h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .featured-text .article-meta {
+            margin-bottom: 2rem;
+            color: var(--cream);
+        }
+
+        .featured-text p {
+            color: var(--cream);
+            line-height: 1.9;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+
+        .btn-secondary {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: transparent;
+            color: var(--warm-white);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            transition: all 0.4s ease;
+            border: 2px solid var(--gold);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gold);
+            color: var(--midnight);
+            transform: translateY(-3px);
+        }
+
+        .newsletter-section {
+            padding: 6rem 5%;
+            background: var(--cream);
+            text-align: center;
+        }
+
+        .newsletter-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .newsletter-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 700;
+            color: var(--midnight);
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .newsletter-content p {
+            font-size: 1.1rem;
+            color: var(--slate);
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--midnight);
+            border-radius: 50px;
+            font-family: 'Jost', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-form input:focus {
+            border-color: var(--gold);
+        }
+
+        .newsletter-form button {
+            padding: 1rem 2rem;
+            background: var(--gold);
+            color: var(--midnight);
+            border: none;
+            border-radius: 50px;
+            font-family: 'Jost', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-form button:hover {
+            background: var(--midnight);
+            color: var(--warm-white);
+        }
+
+        footer {
+            background: var(--midnight);
+            color: var(--cream);
+            padding: 3rem 5% 2rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--slate);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 300;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .featured-content {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .featured-image {
+                height: 400px;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index" class="logo">Brightstream</a>
+        <ul class="nav-links">
+            <li><a href="personal">Personal</a></li>
+            <li><a href="business">Business</a></li>
+            <li><a href="wealth">Wealth</a></li>
+            <li><a href="about">About</a></li>
+            <li><a href="articles" class="active">Articles</a></li>
+            <li><a href="#" class="nav-cta">Get Started</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Financial Resources</h1>
+            <p class="hero-subtitle">Expert insights, guides, and analysis to help you make smarter financial decisions.</p>
+        </div>
+    </section>
+
+    <section class="content-section">
+        <div class="section-header">
+            <div class="filter-tags">
+                <a href="#" class="tag active">All Topics</a>
+                <a href="#" class="tag">Personal Finance</a>
+                <a href="#" class="tag">Investing</a>
+                <a href="#" class="tag">Business</a>
+                <a href="#" class="tag">Retirement</a>
+                <a href="#" class="tag">Market Insights</a>
+            </div>
+        </div>
+
+        <div class="articles-grid">
+            <article class="article-card">
+                <div class="article-image" style="background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=90');">
+                    <span class="article-category">Personal Finance</span>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>December 8, 2024</span>
+                        <span>5 min read</span>
+                    </div>
+                    <h3>Building Your Emergency Fund: A Complete Guide</h3>
+                    <p class="article-excerpt">Learn how to build a safety net that protects you from unexpected expenses and financial emergencies. We break down exactly how much you need and the best strategies to save.</p>
+                    <a href="#" class="article-link">Read More →</a>
+                </div>
+            </article>
+
+            <article class="article-card">
+                <div class="article-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=90');">
+                    <span class="article-category">Investing</span>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>December 5, 2024</span>
+                        <span>8 min read</span>
+                    </div>
+                    <h3>Diversification Strategies for 2025</h3>
+                    <p class="article-excerpt">Navigate market volatility with smart diversification. Explore asset allocation strategies that balance growth potential with risk management.</p>
+                    <a href="#" class="article-link">Read More →</a>
+                </div>
+            </article>
+
+            <article class="article-card">
+                <div class="article-image" style="background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=90');">
+                    <span class="article-category">Business</span>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>December 3, 2024</span>
+                        <span>6 min read</span>
+                    </div>
+                    <h3>Cash Flow Management for Small Businesses</h3>
+                    <p class="article-excerpt">Master the art of cash flow management with proven techniques that keep your business healthy and growing, even during challenging times.</p>
+                    <a href="#" class="article-link">Read More →</a>
+                </div>
+            </article>
+
+            <article class="article-card">
+                <div class="article-image" style="background-image: url('https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=800&q=90');">
+                    <span class="article-category">Retirement</span>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>November 30, 2024</span>
+                        <span>10 min read</span>
+                    </div>
+                    <h3>Maximizing Your 401(k) Contributions</h3>
+                    <p class="article-excerpt">Unlock the full potential of your retirement savings with strategies to maximize employer matching and tax advantages.</p>
+                    <a href="#" class="article-link">Read More →</a>
+                </div>
+            </article>
+
+            <article class="article-card">
+                <div class="article-image" style="background-image: url('https://images.unsplash.com/photo-1551135049-8a33b5883817?w=800&q=90');">
+                    <span class="article-category">Market Insights</span>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>November 28, 2024</span>
+                        <span>7 min read</span>
+                    </div>
+                    <h3>Q4 Market Outlook and Trends</h3>
+                    <p class="article-excerpt">Our chief economist analyzes key market trends and what they mean for your investment portfolio heading into the new year.</p>
+                    <a href="#" class="article-link">Read More →</a>
+                </div>
+            </article>
+
+            <article class="article-card">
+                <div class="article-image" style="background-image: url('https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=90');">
+                    <span class="article-category">Personal Finance</span>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>November 25, 2024</span>
+                        <span>5 min read</span>
+                    </div>
+                    <h3>Credit Score Optimization Techniques</h3>
+                    <p class="article-excerpt">Practical steps to improve your credit score and unlock better rates on loans, mortgages, and credit cards.</p>
+                    <a href="#" class="article-link">Read More →</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="featured-section">
+        <div class="featured-content">
+            <div class="featured-image"></div>
+            <div class="featured-text">
+                <h2>Featured Article: The Future of Digital Banking</h2>
+                <div class="article-meta">
+                    <span>December 10, 2024</span>
+                    <span>12 min read</span>
+                </div>
+                <p>Explore how artificial intelligence, blockchain technology, and biometric security are reshaping the banking landscape. We dive deep into the innovations that will define the next decade of financial services.</p>
+                <p>From instant global payments to AI-powered financial advisors, discover what's coming next and how you can benefit from these revolutionary changes.</p>
+                <a href="#" class="btn-secondary">Read Full Article</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter-section">
+        <div class="newsletter-content">
+            <h2>Stay Informed</h2>
+            <p>Subscribe to our newsletter for weekly financial insights, market updates, and exclusive banking tips delivered to your inbox.</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Brightstream Bank. All rights reserved. Member FDIC.</p>
+            <ul class="footer-links">
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Security</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+    </footer>
+
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="accountModal">
+        <div class="modal-container">
+            <button class="modal-close" id="closeModal">×</button>
+            
+            <!-- Progress Indicator -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Step 1 of 3</div>
+            </div>
+
+            <!-- Step 1: Personal Information -->
+            <div class="modal-step active" id="step1">
+                <h2 class="modal-title">Let's Get Started</h2>
+                <p class="modal-subtitle">Tell us a bit about yourself</p>
+                
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email address">
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal-primary" id="step1Next">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Account Type -->
+            <div class="modal-step" id="step2">
+                <h2 class="modal-title">Choose Your Account</h2>
+                <p class="modal-subtitle">Select the account type that suits your needs</p>
+                
+                <div class="form-group">
+                    <label for="accountType">Account Type</label>
+                    <select id="accountType">
+                        <option value="">Select an account type</option>
+                        <option value="current">Current Account</option>
+                        <option value="business">Business Account</option>
+                        <option value="wealth">Wealth Management</option>
+                    </select>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal-secondary" id="step2Back">Back</button>
+                    <button class="btn-modal-primary" id="step2Next">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Consent -->
+            <div class="modal-step" id="step3">
+                <h2 class="modal-title">Almost There</h2>
+                <p class="modal-subtitle">Review and accept our terms</p>
+                
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="termsConsent">
+                    <label for="termsConsent">
+                        I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>. 
+                        I understand that Brightstream Bank will use my information to process my application 
+                        and provide me with account services.
+                    </label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal-secondary" id="step3Back">Back</button>
+                    <button class="btn-modal-primary" id="step3Submit">Submit Application</button>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div class="modal-step" id="stepSuccess">
+                <div class="success-icon">
+                    <svg viewBox="0 0 52 52">
+                        <circle class="success-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="success-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h2 class="modal-title">Success, welcome to Brightstream</h2>
+                <p class="modal-subtitle">Thank you for choosing us. We'll be in touch shortly to complete your account setup.</p>
+                <button class="btn-modal-primary" id="successClose">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,22,40,.85);backdrop-filter:blur(8px);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s ease}.modal-overlay.active{opacity:1;visibility:visible}.modal-container{background:var(--warm-white);border-radius:30px;width:90%;max-width:550px;padding:3rem;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.3);transform:scale(.9);transition:transform .4s ease}.modal-overlay.active .modal-container{transform:scale(1)}.modal-close{position:absolute;top:1.5rem;right:1.5rem;width:40px;height:40px;border:none;background:var(--cream);border-radius:50%;font-size:1.8rem;color:var(--midnight);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s ease;line-height:1;padding:0}.modal-close:hover{background:var(--midnight);color:var(--warm-white);transform:rotate(90deg)}.progress-container{margin-bottom:2.5rem}.progress-bar{width:100%;height:6px;background:var(--cream);border-radius:10px;overflow:hidden;margin-bottom:.8rem}.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--sage));border-radius:10px;transition:width .4s ease;width:33.33%}.progress-text{font-size:.9rem;color:var(--slate);text-align:center;font-weight:500}.modal-step{display:none;animation:fadeInStep .4s ease}.modal-step.active{display:block}@keyframes fadeInStep{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}.modal-title{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--midnight);margin-bottom:.5rem;letter-spacing:-.5px}.modal-subtitle{font-size:1.05rem;color:var(--slate);margin-bottom:2rem;font-weight:300}.form-group{margin-bottom:1.5rem}.form-group label{display:block;font-weight:500;color:var(--midnight);margin-bottom:.6rem;font-size:.95rem}.form-group input,.form-group select{width:100%;padding:.9rem 1.2rem;border:2px solid var(--cream);border-radius:15px;font-family:'Jost',sans-serif;font-size:1rem;color:var(--midnight);background:var(--warm-white);transition:all .3s ease;outline:none}.form-group input:focus,.form-group select:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(212,175,55,.1)}.form-group select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%230a1628' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1.2rem center;padding-right:3rem}.form-group-checkbox{margin-bottom:2rem;display:flex;gap:1rem;align-items:flex-start}.form-group-checkbox input[type=checkbox]{width:24px;height:24px;min-width:24px;border:2px solid var(--cream);border-radius:6px;cursor:pointer;margin-top:.2rem;accent-color:var(--gold)}.form-group-checkbox label{font-size:.9rem;color:var(--slate);line-height:1.6;cursor:pointer;font-weight:300}.form-group-checkbox label a{color:var(--gold);text-decoration:none;font-weight:500}.form-group-checkbox label a:hover{text-decoration:underline}.modal-actions{display:flex;gap:1rem;margin-top:2rem}.btn-modal-primary,.btn-modal-secondary{flex:1;padding:1rem 2rem;border:none;border-radius:50px;font-family:'Jost',sans-serif;font-size:1rem;font-weight:500;cursor:pointer;transition:all .3s ease;letter-spacing:.3px}.btn-modal-primary{background:var(--gold);color:var(--midnight);box-shadow:0 8px 25px rgba(212,175,55,.3)}.btn-modal-primary:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(212,175,55,.4)}.btn-modal-secondary{background:var(--cream);color:var(--midnight)}.btn-modal-secondary:hover{background:var(--midnight);color:var(--warm-white)}#stepSuccess{text-align:center;padding:2rem 0}.success-icon{width:100px;height:100px;margin:0 auto 2rem}.success-icon svg{width:100%;height:100%}.success-circle{stroke:#4ade80;stroke-width:2;stroke-dasharray:166;stroke-dashoffset:166;animation:strokeCircle .6s ease forwards}.success-check{stroke:#4ade80;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:48;stroke-dashoffset:48;animation:strokeCheck .4s ease forwards .4s}@keyframes strokeCircle{to{stroke-dashoffset:0}}@keyframes strokeCheck{to{stroke-dashoffset:0}}#stepSuccess .modal-title{color:#16a34a;margin-bottom:1rem}#stepSuccess .btn-modal-primary{max-width:250px;margin:2rem auto 0}@media (max-width:768px){.modal-container{padding:2rem 1.5rem;width:95%}.modal-title{font-size:1.8rem}.modal-actions{flex-direction:column}}
+    </style>
+
+    <script>
+        const modal=document.getElementById('accountModal'),closeBtn=document.getElementById('closeModal'),progressFill=document.getElementById('progressFill'),progressText=document.getElementById('progressText');let currentStep=1;function openModal(){modal.classList.add('active'),document.body.style.overflow='hidden',resetModal()}function closeModal(){modal.classList.remove('active'),document.body.style.overflow='',resetModal()}function resetModal(){currentStep=1,showStep(1),updateProgress()}function showStep(e){document.querySelectorAll('.modal-step').forEach(e=>e.classList.remove('active')),document.getElementById('step'+e).classList.add('active'),currentStep=e,updateProgress()}function updateProgress(){const e=currentStep/3*100;progressFill.style.width=e+'%',progressText.textContent='Step '+currentStep+' of 3','Success'===currentStep?document.querySelector('.progress-container').style.display='none':document.querySelector('.progress-container').style.display='block'}document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.btn-primary, .nav-cta, .product-cta, a[href="#"]:not(.footer-links a):not(.product-link):not(.article-link)').forEach(e=>{const t=e.textContent.toLowerCase();(t.includes('open account')||t.includes('get started')||t.includes('open your account')||t.includes('start saving')||t.includes('apply now')||e.classList.contains('nav-cta'))&&e.addEventListener('click',function(e){e.preventDefault(),openModal()})}),closeBtn.addEventListener('click',closeModal),document.getElementById('step1Next').addEventListener('click',function(){showStep(2)}),document.getElementById('step2Back').addEventListener('click',function(){showStep(1)}),document.getElementById('step2Next').addEventListener('click',function(){showStep(3)}),document.getElementById('step3Back').addEventListener('click',function(){showStep(2)}),document.getElementById('step3Submit').addEventListener('click',function(){currentStep='Success',showStep('Success')}),document.getElementById('successClose').addEventListener('click',function(){closeModal()})});
+    </script>
+</body>
+</html>

@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brightstream Bank - Banking Reimagined</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --midnight: #0a1628;
+            --navy: #1a2942;
+            --sage: #8b9d83;
+            --cream: #f8f6f1;
+            --gold: #d4af37;
+            --warm-white: #fefdfb;
+            --slate: #64748b;
+            --deep-teal: #0d4d56;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            color: var(--midnight);
+            background: var(--warm-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(10, 22, 40, 0.95), rgba(10, 22, 40, 0));
+            backdrop-filter: blur(10px);
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--warm-white);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .nav-cta:after {
+            display: none;
+        }
+
+        .nav-cta {
+            background: var(--gold);
+            color: var(--midnight);
+            padding: 0.7rem 1.8rem;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            background: var(--warm-white);
+            color: var(--midnight);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.7), rgba(13, 77, 86, 0.6)),
+                        url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1600&q=90') center/cover;
+            animation: zoomIn 20s ease infinite alternate;
+        }
+
+        @keyframes zoomIn {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.1);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 900px;
+            padding: 0 2rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 7vw, 6rem);
+            font-weight: 700;
+            color: var(--warm-white);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--cream);
+            margin-bottom: 3rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: var(--midnight);
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--warm-white);
+            border: 2px solid var(--warm-white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--warm-white);
+            color: var(--midnight);
+            transform: translateY(-3px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--cream);
+            font-size: 0.9rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(10px);
+            }
+        }
+
+        /* Feature Section */
+        .features {
+            padding: 8rem 5%;
+            background: var(--cream);
+            position: relative;
+        }
+
+        .section-header {
+            max-width: 700px;
+            margin: 0 auto 5rem;
+            text-align: center;
+        }
+
+        .section-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--sage);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            color: var(--midnight);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .section-description {
+            font-size: 1.15rem;
+            color: var(--slate);
+            font-weight: 300;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--warm-white);
+            padding: 3rem 2.5rem;
+            border-radius: 20px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--sage));
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+            transform-origin: left;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(10, 22, 40, 0.1);
+        }
+
+        .feature-card:hover:before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--midnight), var(--deep-teal));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .feature-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--gold);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .feature-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--midnight);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--slate);
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        /* Image Banner */
+        .image-banner {
+            height: 70vh;
+            background: linear-gradient(rgba(10, 22, 40, 0.3), rgba(10, 22, 40, 0.3)),
+                        url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=90') center/cover;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .banner-content {
+            text-align: center;
+            color: var(--warm-white);
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .banner-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .banner-content p {
+            font-size: 1.3rem;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+
+        /* Products Section */
+        .products {
+            padding: 8rem 5%;
+            background: var(--midnight);
+            color: var(--warm-white);
+        }
+
+        .products .section-label {
+            color: var(--gold);
+        }
+
+        .products .section-title {
+            color: var(--warm-white);
+        }
+
+        .products .section-description {
+            color: var(--cream);
+        }
+
+        .product-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, var(--navy), var(--deep-teal));
+            border-radius: 25px;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(212, 175, 55, 0.2);
+        }
+
+        .product-image {
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(10, 22, 40, 0.9), transparent);
+        }
+
+        .product-content {
+            padding: 2.5rem;
+        }
+
+        .product-content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--warm-white);
+        }
+
+        .product-content p {
+            color: var(--cream);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .product-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .product-features li {
+            padding: 0.5rem 0;
+            color: var(--cream);
+            font-weight: 300;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .product-features li:before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+            font-size: 1.5rem;
+        }
+
+        .product-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .product-link:hover {
+            gap: 1rem;
+        }
+
+        /* Trust Section */
+        .trust {
+            padding: 8rem 5%;
+            background: var(--warm-white);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: center;
+        }
+
+        .trust-image {
+            height: 600px;
+            background: linear-gradient(rgba(10, 22, 40, 0.2), rgba(10, 22, 40, 0.2)),
+                        url('https://images.unsplash.com/photo-1551135049-8a33b5883817?w=1000&q=90') center/cover;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(10, 22, 40, 0.15);
+        }
+
+        .trust-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 700;
+            color: var(--midnight);
+            margin-bottom: 2rem;
+            letter-spacing: -1px;
+        }
+
+        .trust-content p {
+            font-size: 1.15rem;
+            color: var(--slate);
+            line-height: 1.9;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .trust-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 2rem;
+            background: var(--cream);
+            border-radius: 20px;
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--slate);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 8rem 5%;
+            background: linear-gradient(135deg, var(--midnight), var(--deep-teal));
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1), transparent);
+            border-radius: 50%;
+        }
+
+        .cta-section:after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 157, 131, 0.1), transparent);
+            border-radius: 50%;
+        }
+
+        .cta-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            color: var(--warm-white);
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .cta-content p {
+            font-size: 1.3rem;
+            color: var(--cream);
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--midnight);
+            color: var(--cream);
+            padding: 5rem 5% 2rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--warm-white);
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand p {
+            color: var(--slate);
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .footer-section h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--warm-white);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: var(--slate);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 300;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            padding-left: 5px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(248, 246, 241, 0.1);
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            color: var(--slate);
+            font-size: 0.9rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .social-links a {
+            color: var(--slate);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--gold);
+            transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .nav-links {
+                gap: 2rem;
+            }
+
+            .trust-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 5%;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .features, .products, .trust, .cta-section {
+                padding: 5rem 5%;
+            }
+
+            .feature-grid, .product-showcase {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-image {
+                height: 400px;
+            }
+
+            .trust-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <a href="index" class="logo">Brightstream</a>
+        <ul class="nav-links">
+            <li><a href="personal">Personal</a></li>
+            <li><a href="business">Business</a></li>
+            <li><a href="wealth">Wealth</a></li>
+            <li><a href="about">About</a></li>
+            <li><a href="articles">Articles</a></li>
+            <li><a href="#" class="nav-cta">Get Started</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <h1>Banking Reimagined</h1>
+            <p class="hero-subtitle">Experience financial excellence crafted for the way you live, work, and dream. Where innovation meets unparalleled service.</p>
+            <div class="hero-cta-group">
+                <a href="#" class="btn-primary">Open Account</a>
+                <a href="#" class="btn-secondary">Explore Services</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">↓</div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="personal">
+        <div class="section-header">
+            <div class="section-label">Why Choose Brightstream</div>
+            <h2 class="section-title">Built Around You</h2>
+            <p class="section-description">Every feature, every service, every interaction is designed with one thing in mind: your financial wellbeing and success.</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+                <h3>Fort Knox Security</h3>
+                <p>Military-grade encryption and biometric authentication protect your assets 24/7. Your security is our obsession, giving you the peace of mind to focus on what matters most.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <h3>Instant Everything</h3>
+                <p>Transfer funds, pay bills, or open accounts in seconds. Our cutting-edge technology ensures every transaction is lightning-fast without compromising security.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                </div>
+                <h3>Premium Rewards</h3>
+                <p>Earn extraordinary rewards on every purchase, with exclusive access to luxury experiences, travel perks, and cashback that actually makes a difference in your life.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                </div>
+                <h3>Personalized Insights</h3>
+                <p>AI-powered analytics provide real-time insights into your spending, saving patterns, and investment opportunities tailored specifically to your financial goals.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                </div>
+                <h3>Global Access</h3>
+                <p>Bank from anywhere in the world with no foreign transaction fees. Our worldwide network ensures you're never far from exceptional banking service.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                    </svg>
+                </div>
+                <h3>24/7 Concierge</h3>
+                <p>Real humans, real expertise, real care. Our dedicated team of financial advisors is available around the clock to assist with any need, big or small.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Banner -->
+    <section class="image-banner">
+        <div class="banner-content">
+            <h2>Your Financial Future, Elevated</h2>
+            <p>Join over 2 million customers who trust Brightstream with their financial journey</p>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="business">
+        <div class="section-header">
+            <div class="section-label">Our Products</div>
+            <h2 class="section-title">Tailored Solutions</h2>
+            <p class="section-description">From everyday banking to sophisticated wealth management, discover products designed to help you achieve more.</p>
+        </div>
+        <div class="product-showcase">
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=90');"></div>
+                <div class="product-content">
+                    <h3>Premier Checking</h3>
+                    <p>The account that works as hard as you do, with zero monthly fees and unlimited transactions.</p>
+                    <ul class="product-features">
+                        <li>No minimum balance required</li>
+                        <li>Free worldwide ATM access</li>
+                        <li>2.5% cashback on all purchases</li>
+                        <li>Overdraft protection included</li>
+                    </ul>
+                    <a href="#" class="product-link">Learn More →</a>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=90');"></div>
+                <div class="product-content">
+                    <h3>Wealth Management</h3>
+                    <p>Sophisticated investment strategies and personalized guidance to grow and protect your wealth.</p>
+                    <ul class="product-features">
+                        <li>Dedicated wealth advisor</li>
+                        <li>Custom portfolio management</li>
+                        <li>Tax optimization strategies</li>
+                        <li>Estate planning services</li>
+                    </ul>
+                    <a href="#" class="product-link">Learn More →</a>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=800&q=90');"></div>
+                <div class="product-content">
+                    <h3>Business Banking</h3>
+                    <p>Powerful tools and flexible financing solutions to help your business thrive and scale.</p>
+                    <ul class="product-features">
+                        <li>Integrated payment processing</li>
+                        <li>Business credit cards with rewards</li>
+                        <li>Lines of credit up to $5M</li>
+                        <li>Cash management services</li>
+                    </ul>
+                    <a href="#" class="product-link">Learn More →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Section -->
+    <section class="trust" id="about">
+        <div class="trust-grid">
+            <div class="trust-image"></div>
+            <div class="trust-content">
+                <h2>Trusted by Millions, Built on Integrity</h2>
+                <p>For over three decades, we've been more than a bank. We're a partner in your financial journey, committed to transparency, innovation, and putting your interests first in every decision we make.</p>
+                <p>Our commitment to excellence has earned us the highest ratings in customer satisfaction, security, and financial stability. But what we're most proud of are the relationships we've built and the dreams we've helped realize.</p>
+                <div class="trust-stats">
+                    <div class="stat">
+                        <span class="stat-number">2M+</span>
+                        <span class="stat-label">Satisfied Customers</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">$45B</span>
+                        <span class="stat-label">Assets Under Management</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">98%</span>
+                        <span class="stat-label">Customer Satisfaction</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">150+</span>
+                        <span class="stat-label">Global Locations</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="contact">
+        <div class="cta-content">
+            <h2>Ready to Join Brightstream?</h2>
+            <p>Join us today and experience banking that's truly designed for your success. Opening an account takes just minutes.</p>
+            <a href="#" class="btn-primary">Open Your Account</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>Brightstream</h3>
+                <p>Banking reimagined for modern life. Experience financial excellence that elevates every aspect of your journey.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Products</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Personal Banking</a></li>
+                    <li><a href="#">Business Banking</a></li>
+                    <li><a href="#">Wealth Management</a></li>
+                    <li><a href="#">Credit Cards</a></li>
+                    <li><a href="#">Loans & Mortgages</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Sustainability</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Security</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Accessibility</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Brightstream Bank. All rights reserved. Member FDIC. Equal Housing Lender.</p>
+            <div class="social-links">
+                <a href="#">LinkedIn</a>
+                <a href="#">Twitter</a>
+                <a href="#">Facebook</a>
+                <a href="#">Instagram</a>
+            </div>
+        </div>
+    </footer>
+    <!-- Modal -->
+    <div class="modal-overlay" id="accountModal">
+        <div class="modal-container">
+            <button class="modal-close" id="closeModal">×</button>
+            
+            <!-- Progress Indicator -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Step 1 of 3</div>
+            </div>
+
+            <!-- Step 1: Personal Information -->
+            <div class="modal-step active" id="step1">
+                <h2 class="modal-title">Let's Get Started</h2>
+                <p class="modal-subtitle">Tell us a bit about yourself</p>
+                
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email address">
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal-primary" id="step1Next">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Account Type -->
+            <div class="modal-step" id="step2">
+                <h2 class="modal-title">Choose Your Account</h2>
+                <p class="modal-subtitle">Select the account type that suits your needs</p>
+                
+                <div class="form-group">
+                    <label for="accountType">Account Type</label>
+                    <select id="accountType">
+                        <option value="">Select an account type</option>
+                        <option value="current">Current Account</option>
+                        <option value="business">Business Account</option>
+                        <option value="wealth">Wealth Management</option>
+                    </select>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal-secondary" id="step2Back">Back</button>
+                    <button class="btn-modal-primary" id="step2Next">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Consent -->
+            <div class="modal-step" id="step3">
+                <h2 class="modal-title">Almost There</h2>
+                <p class="modal-subtitle">Review and accept our terms</p>
+                
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="termsConsent">
+                    <label for="termsConsent">
+                        I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>. 
+                        I understand that Brightstream Bank will use my information to process my application 
+                        and provide me with account services.
+                    </label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal-secondary" id="step3Back">Back</button>
+                    <button class="btn-modal-primary" id="step3Submit">Submit Application</button>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div class="modal-step" id="stepSuccess">
+                <div class="success-icon">
+                    <svg viewBox="0 0 52 52">
+                        <circle class="success-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="success-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h2 class="modal-title">Success, welcome to Brightstream</h2>
+                <p class="modal-subtitle">Thank you for choosing us. We'll be in touch shortly to complete your account setup.</p>
+                <button class="btn-modal-primary" id="successClose">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 22, 40, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background: var(--warm-white);
+            border-radius: 30px;
+            width: 90%;
+            max-width: 550px;
+            padding: 3rem;
+            position: relative;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.4s ease;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--cream);
+            border-radius: 50%;
+            font-size: 1.8rem;
+            color: var(--midnight);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .modal-close:hover {
+            background: var(--midnight);
+            color: var(--warm-white);
+            transform: rotate(90deg);
+        }
+
+        /* Progress Indicator */
+        .progress-container {
+            margin-bottom: 2.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--cream);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.8rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--sage));
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            width: 33.33%;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--slate);
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Modal Steps */
+        .modal-step {
+            display: none;
+            animation: fadeInStep 0.4s ease;
+        }
+
+        .modal-step.active {
+            display: block;
+        }
+
+        @keyframes fadeInStep {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--midnight);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .modal-subtitle {
+            font-size: 1.05rem;
+            color: var(--slate);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: var(--midnight);
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid var(--cream);
+            border-radius: 15px;
+            font-family: 'Jost', sans-serif;
+            font-size: 1rem;
+            color: var(--midnight);
+            background: var(--warm-white);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%230a1628' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1.2rem center;
+            padding-right: 3rem;
+        }
+
+        /* Checkbox Group */
+        .form-group-checkbox {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .form-group-checkbox input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border: 2px solid var(--cream);
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 0.2rem;
+            accent-color: var(--gold);
+        }
+
+        .form-group-checkbox label {
+            font-size: 0.9rem;
+            color: var(--slate);
+            line-height: 1.6;
+            cursor: pointer;
+            font-weight: 300;
+        }
+
+        .form-group-checkbox label a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-group-checkbox label a:hover {
+            text-decoration: underline;
+        }
+
+        /* Modal Actions */
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-modal-primary,
+        .btn-modal-secondary {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Jost', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-modal-primary {
+            background: var(--gold);
+            color: var(--midnight);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-modal-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-modal-secondary {
+            background: var(--cream);
+            color: var(--midnight);
+        }
+
+        .btn-modal-secondary:hover {
+            background: var(--midnight);
+            color: var(--warm-white);
+        }
+
+        /* Success State */
+        #stepSuccess {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 2rem;
+        }
+
+        .success-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .success-circle {
+            stroke: #4ade80;
+            stroke-width: 2;
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: strokeCircle 0.6s ease forwards;
+        }
+
+        .success-check {
+            stroke: #4ade80;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: strokeCheck 0.4s ease forwards 0.4s;
+        }
+
+        @keyframes strokeCircle {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes strokeCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        #stepSuccess .modal-title {
+            color: #16a34a;
+            margin-bottom: 1rem;
+        }
+
+        #stepSuccess .btn-modal-primary {
+            max-width: 250px;
+            margin: 2rem auto 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal-container {
+                padding: 2rem 1.5rem;
+                width: 95%;
+            }
+
+            .modal-title {
+                font-size: 1.8rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        // Modal functionality
+        const modal = document.getElementById('accountModal');
+        const closeBtn = document.getElementById('closeModal');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        let currentStep = 1;
+        
+        // Open modal function
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            resetModal();
+        }
+        
+        // Close modal function
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            resetModal();
+        }
+        
+        // Reset modal to step 1
+        function resetModal() {
+            currentStep = 1;
+            showStep(1);
+            updateProgress();
+        }
+        
+        // Show specific step
+        function showStep(step) {
+            document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            currentStep = step;
+            updateProgress();
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentStep / 3) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = 'Step ' + currentStep + ' of 3';
+            
+            // Hide progress on success
+            if (currentStep === 'Success') {
+                document.querySelector('.progress-container').style.display = 'none';
+            } else {
+                document.querySelector('.progress-container').style.display = 'block';
+            }
+        }
+        
+        // Add click handlers to all CTA buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Select all buttons that should open the modal
+            const ctaButtons = document.querySelectorAll(
+                '.btn-primary, .nav-cta, .product-cta, ' +
+                'a[href="#"]:not(.footer-links a):not(.product-link):not(.article-link)'
+            );
+            
+            ctaButtons.forEach(button => {
+                // Check if button text contains relevant keywords
+                const buttonText = button.textContent.toLowerCase();
+                if (buttonText.includes('open account') || 
+                    buttonText.includes('get started') || 
+                    buttonText.includes('open your account') ||
+                    buttonText.includes('start saving') ||
+                    buttonText.includes('apply now') ||
+                    button.classList.contains('nav-cta')) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        openModal();
+                    });
+                }
+            });
+            
+            // Close button
+            closeBtn.addEventListener('click', closeModal);
+            
+            // Step 1 Next
+            document.getElementById('step1Next').addEventListener('click', function() {
+                showStep(2);
+            });
+            
+            // Step 2 Back
+            document.getElementById('step2Back').addEventListener('click', function() {
+                showStep(1);
+            });
+            
+            // Step 2 Next
+            document.getElementById('step2Next').addEventListener('click', function() {
+                showStep(3);
+            });
+            
+            // Step 3 Back
+            document.getElementById('step3Back').addEventListener('click', function() {
+                showStep(2);
+            });
+            
+            // Step 3 Submit
+            document.getElementById('step3Submit').addEventListener('click', function() {
+                currentStep = 'Success';
+                showStep('Success');
+            });
+            
+            // Success Close
+            document.getElementById('successClose').addEventListener('click', function() {
+                closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
