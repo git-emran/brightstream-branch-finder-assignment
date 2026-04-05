@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import type { BranchWithComputed } from '../types'
 import type { GeolocationState } from '../hooks/useGeolocation'
 
@@ -47,7 +47,10 @@ export function BranchFilters(props: Props) {
 
   const listboxId = useId()
   const [isSuggestOpen, setIsSuggestOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
+  const [active, setActive] = useState<{ queryKey: string; index: number }>({
+    queryKey: '',
+    index: -1,
+  })
 
   const trimmedQuery = query.trim()
   const shouldSuggest =
@@ -61,20 +64,14 @@ export function BranchFilters(props: Props) {
   const showSuggestPanel = isSuggestOpen && shouldSuggest
   const showSuggestions = showSuggestPanel && suggestions.length > 0
 
-  useEffect(() => {
-    // NOTE(search-suggestions): Reset highlight when the query changes.
-    setActiveIndex(-1)
-  }, [trimmedQuery])
-
-  useEffect(() => {
-    if (!showSuggestions) setActiveIndex(-1)
-  }, [showSuggestions])
+  const activeIndex =
+    showSuggestions && active.queryKey === trimmedQuery ? active.index : -1
 
   function selectSuggestion(next: BranchWithComputed) {
     onQueryChange(next.Name)
     onSelectBranchSuggestion(next)
     setIsSuggestOpen(false)
-    setActiveIndex(-1)
+    setActive({ queryKey: next.Name.trim(), index: -1 })
   }
 
   return (
@@ -92,28 +89,50 @@ export function BranchFilters(props: Props) {
               inputMode="search"
               placeholder="City, ZIP, or branch name"
               value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value
+                onQueryChange(next)
+                setActive({ queryKey: next.trim(), index: -1 })
+                setIsSuggestOpen(true)
+              }}
               onFocus={() => setIsSuggestOpen(true)}
-              onBlur={() => setIsSuggestOpen(false)}
+              onBlur={() => {
+                setIsSuggestOpen(false)
+                setActive({ queryKey: trimmedQuery, index: -1 })
+              }}
               onKeyDown={(e) => {
                 if (!shouldSuggest) return
 
                 if (e.key === 'Escape') {
                   setIsSuggestOpen(false)
-                  setActiveIndex(-1)
+                  setActive({ queryKey: trimmedQuery, index: -1 })
                   return
                 }
 
                 if (e.key === 'ArrowDown') {
                   e.preventDefault()
                   setIsSuggestOpen(true)
-                  setActiveIndex((i) => Math.min(suggestions.length - 1, i + 1))
+                  setActive((prev) => {
+                    const current =
+                      prev.queryKey === trimmedQuery ? prev.index : -1
+                    return {
+                      queryKey: trimmedQuery,
+                      index: Math.min(suggestions.length - 1, current + 1),
+                    }
+                  })
                   return
                 }
 
                 if (e.key === 'ArrowUp') {
                   e.preventDefault()
-                  setActiveIndex((i) => Math.max(0, i - 1))
+                  setActive((prev) => {
+                    const current =
+                      prev.queryKey === trimmedQuery ? prev.index : 0
+                    return {
+                      queryKey: trimmedQuery,
+                      index: Math.max(0, current - 1),
+                    }
+                  })
                   return
                 }
 
@@ -204,15 +223,17 @@ export function BranchFilters(props: Props) {
                           type="button"
                           className={
                             isActive ? 'comboItem comboItem--active' : 'comboItem'
-                          }
-                          role="option"
-                          aria-selected={isActive}
-                          onMouseDown={(e) => {
-                            e.preventDefault()
-                            selectSuggestion(b)
-                          }}
-                          onMouseEnter={() => setActiveIndex(i)}
-                        >
+                      }
+                      role="option"
+                      aria-selected={isActive}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        selectSuggestion(b)
+                      }}
+                      onMouseEnter={() =>
+                        setActive({ queryKey: trimmedQuery, index: i })
+                      }
+                    >
                           <span className="comboItem__icon" aria-hidden="true">
                             <svg
                               width="16"

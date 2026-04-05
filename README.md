@@ -5,13 +5,18 @@ Web-based branch finder for Brightstream that fetches real branch data from Opti
 ## Features
 
 - Optimizely Graph integration (GraphQL) with paged fetching (`limit`/`skip`)
-- Fast search across branch name + address fields
-- Pagination controls for results
-- Filters: country + city
-- Map view (Leaflet + OpenStreetMap tiles)
-- In-app directions (no redirect) with a left-side directions panel (OSRM)
-- “Use my location” to sort by nearest branch + show distance
-- Responsive layout (desktop split view, mobile list/map toggle)
+- Local branch caching (12h TTL) for a fast first paint, then background refresh
+- Search with debounced filtering (snappy while typing)
+- Autocomplete dropdown suggestions (keyboard + mouse, ARIA combobox/listbox)
+- Pagination (5 items per page)
+- Filters: country + city, with active filter chips + clear filters
+- Map view (Leaflet + OpenStreetMap tiles) with labeled markers
+- Branch details left-side panel with tabs (Details / Directions)
+- In-app directions (no redirect): OSRM routing + Nominatim geocoding fallback
+- Directions are cached per-branch/per-origin (revisits are instant)
+- “Locate me” populates the search input and focuses nearest branches on the map
+- Copy-to-clipboard for phone numbers in the details panel
+- Responsive layout (desktop split view, mobile map then list)
 
 ## Design System
 
@@ -37,6 +42,10 @@ npm run dev
 ```
 
 Then open the local URL printed by Vite.
+
+### Requirements
+
+- Node.js 18+ recommended
 
 ### Optimizely Graph Endpoint (Optional)
 
@@ -67,4 +76,5 @@ This repo includes `netlify.toml`:
 - Optimizely Graph enforces a max `limit` of `100` for queries; fetching is done via paging.
 - Some fields visible in schema introspection are not queryable at runtime for this dataset, so the UI uses the fields that are queryable and present on records (name, address, coordinates, phone, email).
 - Map performance with ~1,000 markers is acceptable for the take-home, but a production build should add marker clustering and/or server-side geo queries.
-- Directions use the public OSRM routing endpoint; origin address lookup is best-effort via OpenStreetMap Nominatim. For production, use a dedicated geocoding/routing provider with keys + quotas.
+- Directions use the public OSRM routing endpoint; origin address lookup is best-effort via OpenStreetMap Nominatim and may be rate-limited. For production, use a dedicated geocoding/routing provider with keys + quotas.
+- Search suggestions are generated from the already-loaded dataset (no server-side typeahead for this take-home).
