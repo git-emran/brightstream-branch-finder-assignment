@@ -14,12 +14,14 @@ import {
 } from './utils'
 
 type PanelMode = 'details' | 'directions'
+type SearchMode = 'text' | 'nearMe'
 
 export function BranchFinder() {
   const branchesQuery = useBranches()
   const geo = useGeolocation()
 
   const [query, setQuery] = useState('')
+  const [searchMode, setSearchMode] = useState<SearchMode>('text')
   const [countryCode, setCountryCode] = useState<string>('all')
   const [city, setCity] = useState<string>('all')
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null)
@@ -37,7 +39,8 @@ export function BranchFinder() {
     return branches.find((b) => b._id === selectedBranchId) ?? null
   }, [branches, selectedBranchId])
 
-  const searchText = normalizeSearchText(query)
+  const searchText =
+    searchMode === 'nearMe' ? '' : normalizeSearchText(query)
 
   const branchesWithComputed: BranchWithComputed[] = useMemo(() => {
     const origin = geo.location
@@ -118,7 +121,7 @@ export function BranchFinder() {
     return `${filteredBranches.length.toLocaleString()} branches`
   }, [branchesQuery.status, filteredBranches.length])
 
-  const listKey = `${countryCode}:${city}:${searchText}`
+  const listKey = `${countryCode}:${city}:${searchMode}:${searchText}`
   const resultsFocusKey =
     countryCode !== 'all' || city !== 'all' ? `${countryCode}:${city}` : null
 
@@ -150,7 +153,10 @@ export function BranchFinder() {
 
       <BranchFilters
         query={query}
-        onQueryChange={setQuery}
+        onQueryChange={(next) => {
+          setSearchMode('text')
+          setQuery(next)
+        }}
         countryCode={countryCode}
         onCountryCodeChange={(next) => {
           setCountryCode(next)
@@ -161,7 +167,17 @@ export function BranchFinder() {
         countries={countries}
         cities={cities}
         geolocation={geo}
-        onLocateMe={() => geo.request()}
+        onLocateMe={() => {
+          // NOTE(ux): "Locate me" populates the search box, but doesn't apply a
+          // textual filter. Branches are sorted/zoomed by proximity instead.
+          setSearchMode('nearMe')
+          setQuery('My location')
+          setSelectedBranchId(null)
+          setIsPanelOpen(false)
+          setPanelMode('details')
+          setRoute(null)
+          geo.request()
+        }}
         onClearFilters={() => {
           setCountryCode('all')
           setCity('all')

@@ -16,7 +16,11 @@ import type { LatLng } from '../../../shared/geo'
 import type { DirectionsRoute } from '../routing'
 import { configureLeafletDefaultIcon } from '../leaflet'
 import { getBranchMarkerIcon } from '../markerIcons'
-import { formatInlineAddress, parseCoordinates } from '../utils'
+import {
+  computeDistanceKm,
+  formatInlineAddress,
+  parseCoordinates,
+} from '../utils'
 
 type Props = {
   branches: BranchWithComputed[]
@@ -33,10 +37,13 @@ function MapEffects(props: {
   route: DirectionsRoute | null
   resultsFocusKey?: string | null
   resultsCoords: LatLng[]
+  nearbyCoords: LatLng[]
 }) {
-  const { selected, userLocation, route, resultsFocusKey, resultsCoords } = props
+  const { selected, userLocation, route, resultsFocusKey, resultsCoords, nearbyCoords } =
+    props
   const map = useMap()
   const lastResultsFocusKey = useRef<string | null>(null)
+  const lastUserLocationKey = useRef<string | null>(null)
 
   useEffect(() => {
     // NOTE(leaflet): Map container height can be driven by surrounding layout.
@@ -76,14 +83,34 @@ function MapEffects(props: {
           return
         }
       }
+
+      // NOTE(ux): While a country/city filter is active, don't auto-focus to
+      // the user's location; keep the map stable.
+      return
     } else if (lastResultsFocusKey.current !== null) {
       lastResultsFocusKey.current = null
     }
 
     if (userLocation) {
-      map.flyTo(userLocation, Math.max(map.getZoom(), 4), { duration: 0.6 })
+      const nextKey = `${userLocation.lat.toFixed(5)},${userLocation.lng.toFixed(5)}`
+      if (nextKey === lastUserLocationKey.current) return
+      lastUserLocationKey.current = nextKey
+
+      // NOTE(ux): When geolocation becomes available, show the "nearest" area
+      // (user + closest few branches) rather than zooming out to a generic view.
+      const focusPoints = [userLocation, ...nearbyCoords.slice(0, 8)]
+      if (focusPoints.length >= 2) {
+        const bounds = L.latLngBounds(focusPoints.map((p) => [p.lat, p.lng]))
+        map.fitBounds(bounds.pad(0.18))
+        return
+      }
+
+      map.flyTo(userLocation, Math.max(map.getZoom(), 11), { duration: 0.6 })
+      return
+    } else if (lastUserLocationKey.current !== null) {
+      lastUserLocationKey.current = null
     }
-  }, [map, resultsCoords, resultsFocusKey, route, selected, userLocation])
+  }, [map, nearbyCoords, resultsCoords, resultsFocusKey, route, selected, userLocation])
 
   return null
 }
@@ -129,6 +156,18 @@ export function BranchMap(props: Props) {
     [branchesWithCoords],
   )
 
+  const nearbyCoords: LatLng[] = useMemo(() => {
+    if (!userLocation) return []
+    return branchesWithCoords
+      .map((b) => ({
+        coords: b.coords!,
+        distanceKm: computeDistanceKm(userLocation, b.coords!),
+      }))
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, 8)
+      .map((x) => x.coords)
+  }, [branchesWithCoords, userLocation])
+
   const selected =
     selectedBranchId == null
       ? null
@@ -159,6 +198,7 @@ export function BranchMap(props: Props) {
           route={route}
           resultsFocusKey={resultsFocusKey}
           resultsCoords={resultsCoords}
+          nearbyCoords={nearbyCoords}
         />
         <MapZoomWatcher onZoomChange={setZoom} />
 
