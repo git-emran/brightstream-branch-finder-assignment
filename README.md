@@ -2,6 +2,8 @@
 
 Web-based branch finder for Brightstream that fetches real branch data from Optimizely Graph (GraphQL) and provides search, filters, an interactive map, and “nearest branch” sorting via browser geolocation.
 
+<img width="1749" height="1247" alt="Brightstream branch finder" src="https://github.com/user-attachments/assets/966b9297-665b-491a-ac18-f8b2c3744f00" />
+
 ## Features
 
 - Optimizely Graph integration (GraphQL) with paged fetching (`limit`/`skip`)
@@ -85,4 +87,4 @@ Also configure the `VITE_OPTIMIZELY_GRAPH_ENDPOINT` environment variable in Netl
 - Some fields visible in schema introspection are not queryable at runtime for this dataset, so the UI uses the fields that are queryable and present on records (name, address, coordinates, phone, email).
 - Map performance with ~1,000 markers is acceptable for the take-home, but a production build should add marker clustering and/or server-side geo queries.
 - Directions use the public OSRM routing endpoint; origin address lookup is best-effort via OpenStreetMap Nominatim and may be rate-limited. For production, use a dedicated geocoding/routing provider with keys + quotas.
-- Search suggestions are generated from the already-loaded dataset (no server-side typeahead for this take-home).
+- Search suggestions are generated from the already-loaded dataset (no server-side typeahead for this take-home challenge).
