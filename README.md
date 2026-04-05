@@ -57,7 +57,7 @@ This app requires an Optimizely Graph endpoint (including the single-key `auth=.
 Example:
 
 ```bash
-VITE_OPTIMIZELY_GRAPH_ENDPOINT="https://cg.optimizely.com/content/v2?auth=YOUR_KEY_HERE"
+VITE_OPTIMIZELY_GRAPH_ENDPOINT="YOUR_KEY_HERE"
 ```
 
 Note: `src/shared/optimizelyGraphClient.ts` intentionally does not hardcode the endpoint so the repo can stay public without embedding credentials.
