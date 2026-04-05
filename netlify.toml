@@ -2,9 +2,18 @@
   command = "npm run build"
   publish = "dist"
 
+  # NOTE(netlify): This app is a pure client-side SPA, and the Optimizely Graph
+  # endpoint (including its `auth=...` token) is necessarily shipped to the
+  # browser so the app can query GraphQL directly.
+  #
+  # Netlify's secrets scanner will fail the build if it detects any env var value
+  # in the built output. Since `VITE_*` vars are designed to be embedded into the
+  # client bundle by Vite, we explicitly omit this key from scanning.
+  [build.environment]
+    SECRETS_SCAN_OMIT_KEYS = "VITE_OPTIMIZELY_GRAPH_ENDPOINT"
+
 # Single Page App fallback.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
