@@ -1,3 +1,5 @@
+import { useEffect, useId, useMemo, useState } from 'react'
+import type { BranchWithComputed } from '../types'
 import type { GeolocationState } from '../hooks/useGeolocation'
 
 type Props = {
@@ -9,6 +11,9 @@ type Props = {
   onCityChange: (next: string) => void
   countries: Array<{ code: string; name: string }>
   cities: string[]
+  branchSuggestions: BranchWithComputed[]
+  isSuggestLoading: boolean
+  onSelectBranchSuggestion: (branch: BranchWithComputed) => void
   geolocation: GeolocationState
   onLocateMe: () => void
   onClearFilters: () => void
@@ -24,6 +29,9 @@ export function BranchFilters(props: Props) {
     onCityChange,
     countries,
     cities,
+    branchSuggestions,
+    isSuggestLoading,
+    onSelectBranchSuggestion,
     geolocation,
     onLocateMe,
     onClearFilters,
@@ -36,6 +44,38 @@ export function BranchFilters(props: Props) {
 
   const selectedCityName = city === 'all' ? null : city
   const hasActiveFilters = Boolean(selectedCountryName || selectedCityName)
+
+  const listboxId = useId()
+  const [isSuggestOpen, setIsSuggestOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+
+  const trimmedQuery = query.trim()
+  const shouldSuggest =
+    trimmedQuery.length >= 2 && trimmedQuery.toLowerCase() !== 'my location'
+
+  const suggestions = useMemo(() => {
+    if (!shouldSuggest) return []
+    return branchSuggestions.slice(0, 6)
+  }, [branchSuggestions, shouldSuggest])
+
+  const showSuggestPanel = isSuggestOpen && shouldSuggest
+  const showSuggestions = showSuggestPanel && suggestions.length > 0
+
+  useEffect(() => {
+    // NOTE(search-suggestions): Reset highlight when the query changes.
+    setActiveIndex(-1)
+  }, [trimmedQuery])
+
+  useEffect(() => {
+    if (!showSuggestions) setActiveIndex(-1)
+  }, [showSuggestions])
+
+  function selectSuggestion(next: BranchWithComputed) {
+    onQueryChange(next.Name)
+    onSelectBranchSuggestion(next)
+    setIsSuggestOpen(false)
+    setActiveIndex(-1)
+  }
 
   return (
     <div className="finderFilters" aria-label="Search and filters">
@@ -53,6 +93,47 @@ export function BranchFilters(props: Props) {
               placeholder="City, ZIP, or branch name"
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
+              onFocus={() => setIsSuggestOpen(true)}
+              onBlur={() => setIsSuggestOpen(false)}
+              onKeyDown={(e) => {
+                if (!shouldSuggest) return
+
+                if (e.key === 'Escape') {
+                  setIsSuggestOpen(false)
+                  setActiveIndex(-1)
+                  return
+                }
+
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  setIsSuggestOpen(true)
+                  setActiveIndex((i) => Math.min(suggestions.length - 1, i + 1))
+                  return
+                }
+
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  setActiveIndex((i) => Math.max(0, i - 1))
+                  return
+                }
+
+                if (e.key === 'Enter') {
+                  if (!showSuggestions) return
+                  if (activeIndex < 0) return
+                  e.preventDefault()
+                  const next = suggestions[activeIndex]
+                  if (next) selectSuggestion(next)
+                }
+              }}
+              role="combobox"
+              aria-expanded={showSuggestions}
+              aria-controls={showSuggestions ? listboxId : undefined}
+              aria-autocomplete="list"
+              aria-activedescendant={
+                showSuggestions && activeIndex >= 0
+                  ? `${listboxId}-opt-${activeIndex}`
+                  : undefined
+              }
             />
             <button
               type="button"
@@ -90,6 +171,89 @@ export function BranchFilters(props: Props) {
                 <circle cx="12" cy="12" r="1.5" fill="currentColor" />
               </svg>
             </button>
+
+            {showSuggestPanel && (
+              <div
+                id={listboxId}
+                className="comboList"
+                role="listbox"
+                aria-label="Branch suggestions"
+              >
+                {isSuggestLoading ? (
+                  <>
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={`combo-skel-${i}`} className="comboItem comboItem--skeleton">
+                        <span className="comboItem__icon" aria-hidden="true">
+                          <span className="skeletonLine skeletonLine--comboIcon" />
+                        </span>
+                        <span className="comboItem__text" aria-hidden="true">
+                          <span className="skeletonLine skeletonLine--comboTitle" />
+                          <span className="skeletonLine skeletonLine--comboSub" />
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                ) : suggestions.length > 0 ? (
+                  <>
+                    {suggestions.map((b, i) => {
+                      const isActive = i === activeIndex
+                      return (
+                        <button
+                          key={b._id}
+                          id={`${listboxId}-opt-${i}`}
+                          type="button"
+                          className={
+                            isActive ? 'comboItem comboItem--active' : 'comboItem'
+                          }
+                          role="option"
+                          aria-selected={isActive}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            selectSuggestion(b)
+                          }}
+                          onMouseEnter={() => setActiveIndex(i)}
+                        >
+                          <span className="comboItem__icon" aria-hidden="true">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinejoin="round"
+                              />
+                              <circle
+                                cx="12"
+                                cy="10"
+                                r="2.5"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          </span>
+                          <span className="comboItem__text">
+                            <span className="comboItem__title">{b.Name}</span>
+                            <span className="comboItem__sub">
+                              {b.City}
+                              {b.ZipCode ? ` · ${b.ZipCode}` : ''} · {b.Country}
+                            </span>
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </>
+                ) : (
+                  <div className="comboEmpty" role="presentation">
+                    No matches.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

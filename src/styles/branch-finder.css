@@ -53,6 +53,103 @@
   align-items: end;
 }
 
+.finderFilters__search {
+  position: relative;
+  z-index: 20;
+}
+
+.comboList {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  border: 1px solid rgba(10, 22, 40, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 60px rgba(10, 22, 40, 0.14);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: auto;
+  max-height: 320px;
+  padding: 0.35rem;
+  scrollbar-gutter: stable;
+}
+
+.comboEmpty {
+  padding: 0.7rem 0.75rem;
+  color: rgba(100, 116, 139, 0.92);
+  font-size: 0.9rem;
+}
+
+.comboItem--skeleton {
+  cursor: default;
+}
+.comboItem--skeleton:hover {
+  background: transparent;
+}
+
+.skeletonLine--comboIcon {
+  width: 16px;
+  height: 16px;
+  border-radius: 6px;
+}
+.skeletonLine--comboTitle {
+  width: 72%;
+  height: 14px;
+}
+.skeletonLine--comboSub {
+  width: 58%;
+  height: 12px;
+}
+
+.comboItem {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.65rem;
+  border-radius: 14px;
+  cursor: pointer;
+  color: var(--midnight);
+  transition: all 0.3s ease;
+}
+.comboItem:hover {
+  background: rgba(248, 246, 241, 0.72);
+}
+.comboItem--active {
+  background: rgba(248, 246, 241, 0.9);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+.comboItem__icon {
+  margin-top: 0.15rem;
+  color: rgba(10, 22, 40, 0.55);
+  flex: 0 0 auto;
+}
+.comboItem__text {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.comboItem__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.comboItem__sub {
+  font-size: 0.86rem;
+  color: rgba(100, 116, 139, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .filterChips {
   display: flex;
   align-items: center;
@@ -244,6 +341,16 @@
   color: var(--sage);
   font-weight: 600;
   font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+.card__metaIcon {
+  color: rgba(10, 22, 40, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .card__body {
   margin: 0.35rem 0 0;
@@ -509,6 +616,15 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.sidePanel__labelIcon {
+  color: rgba(10, 22, 40, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .sidePanel__value {
   margin-top: 0.25rem;

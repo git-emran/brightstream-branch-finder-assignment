@@ -162,13 +162,36 @@ export function BranchList(props: Props) {
                   onClick={() => onSelectBranch(b)}
                 >
                   <div className="card__header">
-                    <h3 className="card__title">{b.Name}</h3>
-                    {b.distanceKm != null && (
-                      <span className="card__meta">
-                        {formatDistance(b.distanceKm)}
+                  <h3 className="card__title">{b.Name}</h3>
+                  {b.distanceKm != null && (
+                    <span className="card__meta">
+                      <span className="card__metaIcon" aria-hidden="true">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinejoin="round"
+                          />
+                          <circle
+                            cx="12"
+                            cy="10"
+                            r="2.5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+                        </svg>
                       </span>
-                    )}
-                  </div>
+                      {formatDistance(b.distanceKm)}
+                    </span>
+                  )}
+                </div>
                   <p className="card__body">{formatInlineAddress(b)}</p>
                   <p className="card__sub">
                     {b.Phone ? b.Phone : 'Call us'} · {b.Email}

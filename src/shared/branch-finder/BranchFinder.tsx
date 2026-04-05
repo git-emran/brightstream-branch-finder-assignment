@@ -4,6 +4,7 @@ import { BranchList } from './components/BranchList'
 import { BranchMap } from './components/BranchMap'
 import { BranchSidePanel } from './components/BranchSidePanel'
 import { useBranches } from './hooks/useBranches'
+import { useDebouncedValue } from './hooks/useDebouncedValue'
 import { useGeolocation } from './hooks/useGeolocation'
 import type { DirectionsRoute } from './routing'
 import type { Branch, BranchWithComputed } from './types'
@@ -30,6 +31,8 @@ export function BranchFinder() {
   const [originText, setOriginText] = useState('')
   const [route, setRoute] = useState<DirectionsRoute | null>(null)
 
+  const debouncedQuery = useDebouncedValue(query, 140)
+
   const branches: Branch[] = useMemo(
     () => branchesQuery.data ?? [],
     [branchesQuery.data],
@@ -40,7 +43,7 @@ export function BranchFinder() {
   }, [branches, selectedBranchId])
 
   const searchText =
-    searchMode === 'nearMe' ? '' : normalizeSearchText(query)
+    searchMode === 'nearMe' ? '' : normalizeSearchText(debouncedQuery)
 
   const branchesWithComputed: BranchWithComputed[] = useMemo(() => {
     const origin = geo.location
@@ -121,6 +124,15 @@ export function BranchFinder() {
     return `${filteredBranches.length.toLocaleString()} branches`
   }, [branchesQuery.status, filteredBranches.length])
 
+  const branchSuggestions = useMemo(() => {
+    if (searchMode !== 'text') return []
+    if (searchText.length < 2) return []
+    return filteredBranches.slice(0, 6)
+  }, [filteredBranches, searchMode, searchText])
+
+  const isSearchDebouncing =
+    searchMode === 'text' && query.trim() !== debouncedQuery.trim()
+
   const listKey = `${countryCode}:${city}:${searchMode}:${searchText}`
   const resultsFocusKey =
     countryCode !== 'all' || city !== 'all' ? `${countryCode}:${city}` : null
@@ -166,6 +178,13 @@ export function BranchFinder() {
         onCityChange={setCity}
         countries={countries}
         cities={cities}
+        branchSuggestions={branchSuggestions}
+        isSuggestLoading={isSearchDebouncing}
+        onSelectBranchSuggestion={(b) => {
+          setSelectedBranchId(b._id)
+          setRoute(null)
+          openPanel('details')
+        }}
         geolocation={geo}
         onLocateMe={() => {
           // NOTE(ux): "Locate me" populates the search box, but doesn't apply a

@@ -285,11 +285,54 @@ export function BranchSidePanel(props: Props) {
           {mode === 'details' && branch && (
             <div className="sidePanel__body">
               <div className="sidePanel__block">
-                <div className="sidePanel__label">Address</div>
+                <div className="sidePanel__label">
+                  <span className="sidePanel__labelIcon" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="12"
+                        cy="10"
+                        r="2.5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </span>
+                  Address
+                </div>
                 <div className="sidePanel__value">{formatInlineAddress(branch)}</div>
               </div>
               <div className="sidePanel__block">
-                <div className="sidePanel__label">Phone</div>
+                <div className="sidePanel__label">
+                  <span className="sidePanel__labelIcon" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.45 2.1L9.1 10.4a16 16 0 0 0 4.5 4.5l1.1-1.1a2 2 0 0 1 2.1-.45c.8.3 1.6.5 2.5.6A2 2 0 0 1 22 16.9z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  Phone
+                </div>
                 <div className="sidePanel__value sidePanel__valueRow">
                   <span>{branch.Phone ?? '—'}</span>
                   {branch.Phone ? (
@@ -352,7 +395,32 @@ export function BranchSidePanel(props: Props) {
                 </div>
               </div>
               <div className="sidePanel__block">
-                <div className="sidePanel__label">Email</div>
+                <div className="sidePanel__label">
+                  <span className="sidePanel__labelIcon" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 6h16v12H4V6z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M4 7l8 6 8-6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  Email
+                </div>
                 <div className="sidePanel__value">
                   <a className="bs-link" href={`mailto:${branch.Email}`}>
                     {branch.Email}
