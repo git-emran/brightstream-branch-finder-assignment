@@ -134,7 +134,7 @@ export function BranchFinder() {
     <div className="finder">
       <div className="finder__header">
         <div>
-          <h2 className="finder__title">Find a Brightstream branch</h2>
+          <h2 className="finder__title">Brightstream branches</h2>
           <p className="finder__meta">
             {statsLabel}
             {geo.location && geo.status !== 'error' ? (

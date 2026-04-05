@@ -30,7 +30,13 @@ body {
 
 body {
   margin: 0;
-  font-family: 'Jost', system-ui, -apple-system, Segoe UI, Roboto, Arial,
+  font-family:
+    "Jost",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
     sans-serif;
   color: var(--midnight);
   background: var(--warm-white);
@@ -86,7 +92,7 @@ select {
   opacity: 0.6;
 }
 .bs-inputIconBtn--loading::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 8px;
   border-radius: 999px;
@@ -132,7 +138,7 @@ select {
 }
 
 .bs-logo {
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--midnight);
@@ -162,7 +168,7 @@ select {
   color: var(--midnight);
 }
 .bs-nav__link::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -5px;
   left: 0;
@@ -240,7 +246,7 @@ select {
 }
 
 .bs-hero__title {
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
@@ -350,7 +356,7 @@ select {
   position: relative;
 }
 .bs-iconBtn--loading::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: -3px;
   border-radius: 999px;
@@ -382,7 +388,17 @@ select {
   color: rgba(10, 22, 40, 0.78);
   font-weight: 500;
 }
-.bs-input,
+.bs-input {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(10, 22, 40, 0.14);
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem;
+  font-size: 0.95rem;
+  color: rgba(10, 22, 40, 0.76);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
 .bs-select {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(10, 22, 40, 0.14);
@@ -400,6 +416,12 @@ select {
   color: rgba(100, 116, 139, 0.9);
 }
 
+.bs-input:hover,
+.bs-select:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(248, 246, 241, 0.92);
+}
+
 .bs-select {
   /* NOTE(select): Normalize right padding across browsers by rendering our own chevron. */
   appearance: none;
@@ -412,8 +434,8 @@ select {
 }
 .bs-input:focus,
 .bs-select:focus {
-  border-color: rgba(13, 77, 86, 0.5);
-  box-shadow: 0 0 0 4px rgba(13, 77, 86, 0.12);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(248, 246, 241, 0.92);
 }
 .bs-select:disabled {
   opacity: 0.6;
@@ -436,7 +458,7 @@ select {
 }
 .bs-empty__title {
   margin: 0;
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 1.25rem;
 }
 .bs-empty__body {
@@ -480,7 +502,7 @@ select {
   align-items: start;
 }
 .bs-footer__logo {
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-weight: 700;
   letter-spacing: -0.01em;
   font-size: 1.25rem;

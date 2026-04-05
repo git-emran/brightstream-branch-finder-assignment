@@ -154,8 +154,9 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  width: 100%;
 }
 
 .pager__pages {
@@ -163,6 +164,11 @@
   gap: 0.35rem;
   align-items: center;
   padding: 0.2rem 0.1rem;
+  /* NOTE(pagination): Keep a stable width so the control doesn't shift as
+   * page digits / ellipses appear and disappear.
+   */
+  width: clamp(14rem, 28vw, 22rem);
+  justify-content: center;
 }
 
 .pager__page {
@@ -174,20 +180,24 @@
   font-weight: 600;
   color: var(--navy);
   font-size: 0.9rem;
+  min-width: 2.25rem;
+  text-align: center;
 }
 .pager__page:hover {
   border-color: rgba(10, 22, 40, 0.28);
 }
 .pager__page--active {
   background: var(--cream);
-  border-color: rgba(13, 77, 86, 0.45);
-  box-shadow: 0 0 0 4px rgba(13, 77, 86, 0.12);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(248, 246, 241, 0.92);
 }
 
 .pager__ellipsis {
   color: rgba(10, 22, 40, 0.5);
   padding: 0 0.2rem;
   font-weight: 600;
+  min-width: 1.15rem;
+  text-align: center;
 }
 
 .pager__btn {
@@ -214,8 +224,8 @@
   border-color: rgba(10, 22, 40, 0.2);
 }
 .card--active {
-  border-color: rgba(13, 77, 86, 0.45);
-  box-shadow: 0 0 0 4px rgba(13, 77, 86, 0.12);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(248, 246, 241, 0.92);
 }
 
 .card__header {
@@ -593,5 +603,12 @@
   .sidePanel__content {
     border-radius: 0;
     height: 100%;
+  }
+  .pager__nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .pager__pages {
+    width: auto;
   }
 }
