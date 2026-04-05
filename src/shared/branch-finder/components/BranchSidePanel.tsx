@@ -60,6 +60,9 @@ export function BranchSidePanel(props: Props) {
   const [directionsRequestId, setDirectionsRequestId] = useState(0)
   const lastRouteKeyRef = useRef<string | null>(null)
   const routeCacheRef = useRef<Map<string, DirectionsRoute>>(new Map())
+  const [phoneCopyState, setPhoneCopyState] = useState<
+    'idle' | 'copied' | 'error'
+  >('idle')
 
   // NOTE(directions): Auto-fetch once we have browser geolocation (reliable)
   // and the user is viewing the directions tab.
@@ -85,7 +88,40 @@ export function BranchSidePanel(props: Props) {
   // but keep the full cache so revisiting branches is instant.
   useEffect(() => {
     lastRouteKeyRef.current = null
+    setPhoneCopyState('idle')
   }, [branch?._id])
+
+  useEffect(() => {
+    if (phoneCopyState !== 'copied') return
+    const t = window.setTimeout(() => setPhoneCopyState('idle'), 1600)
+    return () => window.clearTimeout(t)
+  }, [phoneCopyState])
+
+  async function copyPhoneNumber(value: string) {
+    // NOTE(clipboard): Prefer the async Clipboard API; fall back to a hidden textarea
+    // for older browsers / insecure contexts.
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value)
+        setPhoneCopyState('copied')
+        return
+      }
+
+      const textarea = document.createElement('textarea')
+      textarea.value = value
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.top = '-9999px'
+      textarea.style.left = '-9999px'
+      document.body.appendChild(textarea)
+      textarea.select()
+      const ok = document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setPhoneCopyState(ok ? 'copied' : 'error')
+    } catch {
+      setPhoneCopyState('error')
+    }
+  }
 
   useEffect(() => {
     if (!isOpen) return
@@ -254,7 +290,66 @@ export function BranchSidePanel(props: Props) {
               </div>
               <div className="sidePanel__block">
                 <div className="sidePanel__label">Phone</div>
-                <div className="sidePanel__value">{branch.Phone ?? '—'}</div>
+                <div className="sidePanel__value sidePanel__valueRow">
+                  <span>{branch.Phone ?? '—'}</span>
+                  {branch.Phone ? (
+                    <button
+                      type="button"
+                      className="copyIconBtn"
+                      onClick={() => copyPhoneNumber(branch.Phone!)}
+                      aria-label="Copy phone number"
+                      title={
+                        phoneCopyState === 'copied'
+                          ? 'Copied'
+                          : phoneCopyState === 'error'
+                            ? 'Unable to copy'
+                            : 'Copy phone'
+                      }
+                    >
+                      {phoneCopyState === 'copied' ? (
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M20 6L9 17l-5-5"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M9 9h10v10H9V9z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ) : null}
+                </div>
               </div>
               <div className="sidePanel__block">
                 <div className="sidePanel__label">Email</div>
