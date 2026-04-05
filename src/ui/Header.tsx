@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 
 export function Header() {
   const [isOnHero, setIsOnHero] = useState(true)
+  const navBlurStyle = {
+    // NOTE(css): Ensure Safari applies blur in production builds even if CSS
+    // tooling drops vendor-prefixed `-webkit-backdrop-filter`.
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+  } as const
 
   useEffect(() => {
     const hero = document.querySelector('.bs-hero--branchFinder')
@@ -37,7 +43,7 @@ export function Header() {
 
   return (
     <header className={isOnHero ? 'bs-header bs-header--onHero' : 'bs-header'}>
-      <nav className="bs-nav" aria-label="Primary">
+      <nav className="bs-nav" aria-label="Primary" style={navBlurStyle}>
         <div className="bs-container bs-nav__content">
           <a className="bs-logo" href="#main">
             Brightstream
