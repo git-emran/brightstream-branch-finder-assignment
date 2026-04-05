@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import type { Branch } from '../types'
 import type { LatLng } from '../../../shared/geo'
 import {
@@ -7,13 +7,9 @@ import {
   formatInlineAddress,
   parseCoordinates,
 } from '../utils'
-import {
-  fetchDirectionsRoute,
-  formatDuration,
-  geocodeOrigin,
-  type DirectionsRoute,
-} from '../routing'
+import { formatDuration, type DirectionsRoute } from '../routing'
 import type { GeolocationState } from '../hooks/useGeolocation'
+import { useDirections } from '../hooks/useDirections'
 
 type PanelMode = 'details' | 'directions'
 
@@ -30,9 +26,7 @@ type Props = {
   onClose: () => void
 }
 
-type DirectionsStatus = 'idle' | 'loading' | 'success' | 'error'
-
-export function BranchSidePanel(props: Props) {
+export const BranchSidePanel = memo(function BranchSidePanel(props: Props) {
   const {
     branch,
     mode,
@@ -47,55 +41,42 @@ export function BranchSidePanel(props: Props) {
   } = props
 
   const isOpen = Boolean(branch)
-  const coords = branch ? parseCoordinates(branch.Coordinates) : null
+  const coords = useMemo(() => {
+    // NOTE(coords): Memoize to keep a stable object identity across renders.
+    // This prevents effects (like auto-fetching directions) from re-triggering
+    // indefinitely due to a "new" LatLng object each render.
+    return branch ? parseCoordinates(branch.Coordinates) : null
+  }, [branch])
 
   const distanceKm = useMemo(() => {
     if (!branch || !userLocation || !coords) return null
     return computeDistanceKm(userLocation, coords)
   }, [branch, coords, userLocation])
 
-  const [directionsStatus, setDirectionsStatus] =
-    useState<DirectionsStatus>('idle')
-  const [directionsError, setDirectionsError] = useState<string | null>(null)
-  const [directionsRequestId, setDirectionsRequestId] = useState(0)
-  const lastRouteKeyRef = useRef<string | null>(null)
-  const routeCacheRef = useRef<Map<string, DirectionsRoute>>(new Map())
-  const [phoneCopyState, setPhoneCopyState] = useState<
-    'idle' | 'copied' | 'error'
-  >('idle')
+  const [phoneCopy, setPhoneCopy] = useState<{
+    phone: string | null
+    status: 'idle' | 'copied' | 'error'
+  }>({ phone: null, status: 'idle' })
 
-  // NOTE(directions): Auto-fetch once we have browser geolocation (reliable)
-  // and the user is viewing the directions tab.
-  useEffect(() => {
-    if (!isOpen || mode !== 'directions') return
-    if (!coords) return
-    if (!userLocation) return
-    setDirectionsRequestId((n) => n + 1)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [branch?._id, coords?.lat, coords?.lng, isOpen, mode, userLocation?.lat, userLocation?.lng])
-
-  // NOTE(directions): Debounce routing requests while typing an origin address.
-  useEffect(() => {
-    if (!isOpen || mode !== 'directions') return
-    if (userLocation) return
-    if (!originText.trim()) return
-
-    const t = setTimeout(() => setDirectionsRequestId((n) => n + 1), 450)
-    return () => clearTimeout(t)
-  }, [isOpen, mode, originText, userLocation])
-
-  // NOTE(directions-cache): Reset the "current route key" when switching branches,
-  // but keep the full cache so revisiting branches is instant.
-  useEffect(() => {
-    lastRouteKeyRef.current = null
-    setPhoneCopyState('idle')
-  }, [branch?._id])
+  const directions = useDirections({
+    isOpen,
+    mode,
+    branchId: branch?._id ?? null,
+    destination: coords,
+    userLocation,
+    originText,
+    route,
+    onRouteChange,
+  })
 
   useEffect(() => {
-    if (phoneCopyState !== 'copied') return
-    const t = window.setTimeout(() => setPhoneCopyState('idle'), 1600)
+    if (phoneCopy.status !== 'copied') return
+    const t = window.setTimeout(
+      () => setPhoneCopy({ phone: null, status: 'idle' }),
+      1600,
+    )
     return () => window.clearTimeout(t)
-  }, [phoneCopyState])
+  }, [phoneCopy.status])
 
   async function copyPhoneNumber(value: string) {
     // NOTE(clipboard): Prefer the async Clipboard API; fall back to a hidden textarea
@@ -103,7 +84,7 @@ export function BranchSidePanel(props: Props) {
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value)
-        setPhoneCopyState('copied')
+        setPhoneCopy({ phone: value, status: 'copied' })
         return
       }
 
@@ -117,105 +98,11 @@ export function BranchSidePanel(props: Props) {
       textarea.select()
       const ok = document.execCommand('copy')
       document.body.removeChild(textarea)
-      setPhoneCopyState(ok ? 'copied' : 'error')
+      setPhoneCopy({ phone: value, status: ok ? 'copied' : 'error' })
     } catch {
-      setPhoneCopyState('error')
+      setPhoneCopy({ phone: value, status: 'error' })
     }
   }
-
-  useEffect(() => {
-    if (!isOpen) return
-    if (mode !== 'directions') return
-
-    if (!branch) return
-
-    if (!coords) {
-      setDirectionsStatus('error')
-      setDirectionsError('No coordinates available for this branch.')
-      onRouteChange(null)
-      return
-    }
-
-    const destination = coords
-
-    if (directionsRequestId === 0) {
-      setDirectionsStatus('idle')
-      setDirectionsError(null)
-      return
-    }
-
-    if (!userLocation && !originText.trim()) {
-      setDirectionsStatus('error')
-      setDirectionsError('Enter a starting address or use your location.')
-      return
-    }
-
-    const originKey = userLocation
-      ? `geo:${userLocation.lat.toFixed(6)},${userLocation.lng.toFixed(6)}`
-      : `text:${originText.trim().toLowerCase()}`
-    const routeKey = `${branch._id}:${originKey}`
-
-    // NOTE(directions-cache): Avoid re-fetching directions when toggling tabs.
-    if (route && lastRouteKeyRef.current === routeKey) {
-      setDirectionsStatus('success')
-      setDirectionsError(null)
-      return
-    }
-
-    const cached = routeCacheRef.current.get(routeKey)
-    if (cached) {
-      // NOTE(directions-cache): Persist directions per-branch/per-origin across revisits.
-      onRouteChange(cached)
-      lastRouteKeyRef.current = routeKey
-      setDirectionsStatus('success')
-      setDirectionsError(null)
-      return
-    }
-
-    let cancelled = false
-
-    async function run() {
-      setDirectionsStatus('loading')
-      setDirectionsError(null)
-
-      const origin = userLocation
-        ? userLocation
-        : await geocodeOrigin(originText)
-
-      if (cancelled) return
-
-      const nextRoute = await fetchDirectionsRoute(origin, destination)
-      if (cancelled) return
-
-      onRouteChange(nextRoute)
-      routeCacheRef.current.set(routeKey, nextRoute)
-      lastRouteKeyRef.current = routeKey
-      setDirectionsStatus('success')
-    }
-
-    run().catch((err) => {
-      if (cancelled) return
-      const message = err instanceof Error ? err.message : 'Unable to get directions.'
-      setDirectionsStatus('error')
-      setDirectionsError(message)
-      onRouteChange(null)
-    })
-
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    branch?._id,
-    coords?.lat,
-    coords?.lng,
-    directionsRequestId,
-    isOpen,
-    mode,
-    originText,
-    route,
-    userLocation,
-  ])
 
   return (
     <>
@@ -342,14 +229,20 @@ export function BranchSidePanel(props: Props) {
                       onClick={() => copyPhoneNumber(branch.Phone!)}
                       aria-label="Copy phone number"
                       title={
-                        phoneCopyState === 'copied'
+                        (phoneCopy.phone === branch.Phone
+                          ? phoneCopy.status
+                          : 'idle') === 'copied'
                           ? 'Copied'
-                          : phoneCopyState === 'error'
+                          : (phoneCopy.phone === branch.Phone
+                                ? phoneCopy.status
+                                : 'idle') === 'error'
                             ? 'Unable to copy'
                             : 'Copy phone'
                       }
                     >
-                      {phoneCopyState === 'copied' ? (
+                      {(phoneCopy.phone === branch.Phone
+                        ? phoneCopy.status
+                        : 'idle') === 'copied' ? (
                         <svg
                           width="16"
                           height="16"
@@ -447,10 +340,9 @@ export function BranchSidePanel(props: Props) {
                         placeholder="Enter a starting address"
                         value={originText}
                         onChange={(e) => onOriginTextChange(e.target.value)}
-                        onBlur={() => setDirectionsRequestId((n) => n + 1)}
+                        onBlur={() => directions.request()}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter')
-                            setDirectionsRequestId((n) => n + 1)
+                          if (e.key === 'Enter') directions.request()
                         }}
                       />
                       <button
@@ -499,16 +391,16 @@ export function BranchSidePanel(props: Props) {
                 </div>
               </div>
 
-              {directionsStatus === 'loading' && (
+              {directions.status === 'loading' && (
                 <div className="bs-loading" role="status" aria-live="polite">
                   <div className="bs-loading__spinner" aria-hidden="true" />
                   <div className="bs-loading__label">Getting directions…</div>
                 </div>
               )}
 
-              {directionsStatus === 'error' && directionsError && (
+              {directions.status === 'error' && directions.error && (
                 <p className="bs-help bs-help--error" role="status">
-                  {directionsError}
+                  {directions.error}
                 </p>
               )}
 
@@ -541,4 +433,4 @@ export function BranchSidePanel(props: Props) {
       </aside>
     </>
   )
-}
+})

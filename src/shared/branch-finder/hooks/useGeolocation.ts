@@ -22,6 +22,25 @@ export function useGeolocation(): GeolocationState {
       return
     }
 
+    const requestFallback = async (reason: string) => {
+      // NOTE(ux): If the native browser API fails (e.g. macOS "Unknown Error"),
+      // fall back to a rough IP-based geolocation so the user still sees relevant branches.
+      try {
+        const res = await fetch('https://get.geojs.io/v1/ip/geo.json')
+        if (!res.ok) throw new Error('Fallback failed')
+        const data = await res.json()
+        setLocation({
+          lat: parseFloat(data.latitude),
+          lng: parseFloat(data.longitude),
+        })
+        setStatus('success')
+        setErrorMessage(null)
+      } catch {
+        setStatus('error')
+        setErrorMessage(reason || 'Unable to determine location.')
+      }
+    }
+
     setStatus('loading')
     setErrorMessage(null)
 
@@ -31,11 +50,10 @@ export function useGeolocation(): GeolocationState {
         setStatus('success')
       },
       (err) => {
-        // NOTE(branch-finder): Message is user-facing; keep it short.
-        setStatus('error')
-        setErrorMessage(err.message || 'Location permission denied.')
+        // NOTE(branch-finder): Try fallback instead of showing an error immediately.
+        requestFallback(err.message)
       },
-      { enableHighAccuracy: true, timeout: 12_000 },
+      { enableHighAccuracy: false, timeout: 6_000 },
     )
   }, [])
 

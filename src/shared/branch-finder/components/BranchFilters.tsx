@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useId, useMemo, useState } from 'react'
 import type { BranchWithComputed } from '../types'
 import type { GeolocationState } from '../hooks/useGeolocation'
 
@@ -19,7 +19,7 @@ type Props = {
   onClearFilters: () => void
 }
 
-export function BranchFilters(props: Props) {
+export const BranchFilters = memo(function BranchFilters(props: Props) {
   const {
     query,
     onQueryChange,
@@ -37,6 +37,24 @@ export function BranchFilters(props: Props) {
     onClearFilters,
   } = props
 
+  // NOTE(ux): Keep a local state for the input field so that typing is 60fps
+  // and doesn't trigger expensive parent rerenders on every keystroke.
+  const [inputValue, setInputValue] = useState(query)
+
+  // NOTE(ux): Synchronize local value when the query prop changes externally
+  // (e.g. from selecting a suggestion or "Locate me").
+  useEffect(() => {
+    setInputValue(query)
+  }, [query])
+
+  // NOTE(ux): Debounce the parent update so we only filter the main list
+  // once the user has finished typing.
+  useEffect(() => {
+    if (inputValue === query) return
+    const t = window.setTimeout(() => onQueryChange(inputValue), 250)
+    return () => window.clearTimeout(t)
+  }, [inputValue, onQueryChange, query])
+
   const selectedCountryName =
     countryCode === 'all'
       ? null
@@ -52,7 +70,7 @@ export function BranchFilters(props: Props) {
     index: -1,
   })
 
-  const trimmedQuery = query.trim()
+  const trimmedQuery = inputValue.trim()
   const shouldSuggest =
     trimmedQuery.length >= 2 && trimmedQuery.toLowerCase() !== 'my location'
 
@@ -68,11 +86,35 @@ export function BranchFilters(props: Props) {
     showSuggestions && active.queryKey === trimmedQuery ? active.index : -1
 
   function selectSuggestion(next: BranchWithComputed) {
+    setInputValue(next.Name)
     onQueryChange(next.Name)
     onSelectBranchSuggestion(next)
     setIsSuggestOpen(false)
     setActive({ queryKey: next.Name.trim(), index: -1 })
   }
+
+  // NOTE(ux): Highlight the matching part of the suggestion text.
+  const Highlight = useCallback(
+    ({ text, match }: { text: string; match: string }) => {
+      if (!match.trim()) return <>{text}</>
+      const regex = new RegExp(`(${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+      const parts = text.split(regex)
+      return (
+        <>
+          {parts.map((part, i) =>
+            regex.test(part) ? (
+              <strong key={i} className="comboItem__match">
+                {part}
+              </strong>
+            ) : (
+              part
+            ),
+          )}
+        </>
+      )
+    },
+    [],
+  )
 
   return (
     <div className="finderFilters" aria-label="Search and filters">
@@ -88,10 +130,10 @@ export function BranchFilters(props: Props) {
               type="search"
               inputMode="search"
               placeholder="City, ZIP, or branch name"
-              value={query}
+              value={inputValue}
               onChange={(e) => {
                 const next = e.target.value
-                onQueryChange(next)
+                setInputValue(next)
                 setActive({ queryKey: next.trim(), index: -1 })
                 setIsSuggestOpen(true)
               }}
@@ -198,21 +240,16 @@ export function BranchFilters(props: Props) {
                 role="listbox"
                 aria-label="Branch suggestions"
               >
-                {isSuggestLoading ? (
-                  <>
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <div key={`combo-skel-${i}`} className="comboItem comboItem--skeleton">
-                        <span className="comboItem__icon" aria-hidden="true">
-                          <span className="skeletonLine skeletonLine--comboIcon" />
-                        </span>
-                        <span className="comboItem__text" aria-hidden="true">
-                          <span className="skeletonLine skeletonLine--comboTitle" />
-                          <span className="skeletonLine skeletonLine--comboSub" />
-                        </span>
-                      </div>
-                    ))}
-                  </>
-                ) : suggestions.length > 0 ? (
+                <div className="comboMetaWrap">
+                  {isSuggestLoading ? (
+                    <div className="comboMeta" role="presentation">
+                      <span className="comboMeta__spinner" aria-hidden="true" />
+                      Updating matches…
+                    </div>
+                  ) : null}
+                </div>
+
+                {suggestions.length > 0 ? (
                   <>
                     {suggestions.map((b, i) => {
                       const isActive = i === activeIndex
@@ -222,18 +259,20 @@ export function BranchFilters(props: Props) {
                           id={`${listboxId}-opt-${i}`}
                           type="button"
                           className={
-                            isActive ? 'comboItem comboItem--active' : 'comboItem'
-                      }
-                      role="option"
-                      aria-selected={isActive}
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        selectSuggestion(b)
-                      }}
-                      onMouseEnter={() =>
-                        setActive({ queryKey: trimmedQuery, index: i })
-                      }
-                    >
+                            isActive
+                              ? 'comboItem comboItem--active'
+                              : 'comboItem'
+                          }
+                          role="option"
+                          aria-selected={isActive}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            selectSuggestion(b)
+                          }}
+                          onMouseEnter={() =>
+                            setActive({ queryKey: trimmedQuery, index: i })
+                          }
+                        >
                           <span className="comboItem__icon" aria-hidden="true">
                             <svg
                               width="16"
@@ -258,10 +297,20 @@ export function BranchFilters(props: Props) {
                             </svg>
                           </span>
                           <span className="comboItem__text">
-                            <span className="comboItem__title">{b.Name}</span>
+                            <span className="comboItem__title">
+                              <Highlight text={b.Name} match={trimmedQuery} />
+                            </span>
                             <span className="comboItem__sub">
-                              {b.City}
-                              {b.ZipCode ? ` · ${b.ZipCode}` : ''} · {b.Country}
+                              <Highlight text={b.City} match={trimmedQuery} />
+                              {b.ZipCode ? (
+                                <>
+                                  {' · '}
+                                  <Highlight text={b.ZipCode} match={trimmedQuery} />
+                                </>
+                              ) : (
+                                ''
+                              )}{' '}
+                              · {b.Country}
                             </span>
                           </span>
                         </button>
@@ -372,4 +421,4 @@ export function BranchFilters(props: Props) {
       )}
     </div>
   )
-}
+})

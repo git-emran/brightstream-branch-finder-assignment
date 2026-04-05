@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { BranchFilters } from './components/BranchFilters'
 import { BranchList } from './components/BranchList'
 import { BranchMap } from './components/BranchMap'
@@ -31,7 +31,10 @@ export function BranchFinder() {
   const [originText, setOriginText] = useState('')
   const [route, setRoute] = useState<DirectionsRoute | null>(null)
 
-  const debouncedQuery = useDebouncedValue(query, 140)
+  // NOTE(perf): The main search query is already debounced by BranchFilters (250ms),
+  // so we can use it directly for most logic.
+  const debouncedQuery = useDebouncedValue(query, 50)
+  const debouncedSuggestQuery = useDebouncedValue(query, 0)
 
   const branches: Branch[] = useMemo(
     () => branchesQuery.data ?? [],
@@ -42,19 +45,19 @@ export function BranchFinder() {
     return branches.find((b) => b._id === selectedBranchId) ?? null
   }, [branches, selectedBranchId])
 
-  const searchText =
+  const debouncedSearchText =
     searchMode === 'nearMe' ? '' : normalizeSearchText(debouncedQuery)
+  const immediateSearchText =
+    searchMode === 'nearMe' ? '' : normalizeSearchText(query)
+  const debouncedSuggestText =
+    searchMode === 'nearMe' ? '' : normalizeSearchText(debouncedSuggestQuery)
 
   const branchesWithComputed: BranchWithComputed[] = useMemo(() => {
     const origin = geo.location
     return branches.map((b) => {
       const coords = parseCoordinates(b.Coordinates)
       const distanceKm =
-        origin && coords
-          ? computeDistanceKm(origin, coords)
-          : origin
-            ? null
-            : null
+        origin && coords ? computeDistanceKm(origin, coords) : null
       return { ...b, coords, distanceKm }
     })
   }, [branches, geo.location])
@@ -78,8 +81,27 @@ export function BranchFinder() {
     return Array.from(citySet).sort((a, b) => a.localeCompare(b))
   }, [branches, countryCode])
 
-  const filteredBranches = useMemo(() => {
-    const q = searchText
+  const branchSearchIndex = useMemo(() => {
+    const map = new Map<
+      string,
+      { name: string; city: string; zip: string; full: string }
+    >()
+
+    for (const b of branches) {
+      const name = normalizeSearchText(b.Name)
+      const city = normalizeSearchText(b.City)
+      const zip = normalizeSearchText(b.ZipCode)
+      const full = normalizeSearchText(
+        [b.Name, b.City, b.Country, b.CountryCode, b.ZipCode, b.Street].join(' '),
+      )
+
+      map.set(b._id, { name, city, zip, full })
+    }
+
+    return map
+  }, [branches])
+
+  const baseFilteredBranches = useMemo(() => {
     let out = branchesWithComputed
 
     if (countryCode !== 'all') {
@@ -87,21 +109,6 @@ export function BranchFinder() {
     }
     if (city !== 'all') {
       out = out.filter((b) => b.City === city)
-    }
-    if (q) {
-      out = out.filter((b) => {
-        const haystack = normalizeSearchText(
-          [
-            b.Name,
-            b.City,
-            b.Country,
-            b.CountryCode,
-            b.ZipCode,
-            b.Street,
-          ].join(' '),
-        )
-        return haystack.includes(q)
-      })
     }
 
     // NOTE(branch-finder): When geolocation is available, prioritize nearest;
@@ -116,7 +123,32 @@ export function BranchFinder() {
     })
 
     return out
-  }, [branchesWithComputed, city, countryCode, geo.location, searchText])
+  }, [branchesWithComputed, city, countryCode, geo.location])
+
+  const filteredBranches = useMemo(() => {
+    const q = debouncedSearchText
+    if (!q) {
+      if (searchMode === 'nearMe') {
+        // NOTE(ux): For "Near Me" search, focus on the 50 most relevant (closest)
+        // results to keep the map and list localized.
+        return baseFilteredBranches.slice(0, 50)
+      }
+      return baseFilteredBranches
+    }
+
+    return baseFilteredBranches.filter((b) => {
+      const idx = branchSearchIndex.get(b._id)
+      if (!idx) return false
+      return idx.full.includes(q)
+    })
+  }, [baseFilteredBranches, branchSearchIndex, debouncedSearchText, searchMode])
+
+  const deferredFilteredBranches = useDeferredValue(filteredBranches)
+  const mapBranches = useMemo(() => {
+    // NOTE(perf): Rendering 1,000+ Leaflet markers can be expensive. On large
+    // result sets, defer map updates so the list and controls stay responsive.
+    return filteredBranches.length > 250 ? deferredFilteredBranches : filteredBranches
+  }, [deferredFilteredBranches, filteredBranches])
 
   const statsLabel = useMemo(() => {
     if (branchesQuery.status === 'loading') return 'Loading branches…'
@@ -126,21 +158,132 @@ export function BranchFinder() {
 
   const branchSuggestions = useMemo(() => {
     if (searchMode !== 'text') return []
-    if (searchText.length < 2) return []
-    return filteredBranches.slice(0, 6)
-  }, [filteredBranches, searchMode, searchText])
+    const q = debouncedSuggestText
+    if (q.length < 2) return []
 
-  const isSearchDebouncing =
-    searchMode === 'text' && query.trim() !== debouncedQuery.trim()
+    type Candidate = { branch: BranchWithComputed; score: number }
 
-  const listKey = `${countryCode}:${city}:${searchMode}:${searchText}`
+    function cmp(a: Candidate, b: Candidate) {
+      if (a.score !== b.score) return b.score - a.score
+      const da = a.branch.distanceKm
+      const db = b.branch.distanceKm
+      if (da != null && db != null && da !== db) return da - db
+      return a.branch.Name.localeCompare(b.branch.Name)
+    }
+
+    const top: Candidate[] = []
+
+    function pushCandidate(next: Candidate) {
+      // NOTE(search): Keep a small sorted list to avoid expensive full sorts.
+      top.push(next)
+      top.sort(cmp)
+      if (top.length > 6) top.length = 6
+    }
+
+    for (const b of baseFilteredBranches) {
+      const idx = branchSearchIndex.get(b._id)
+      if (!idx) continue
+      if (!idx.full.includes(q)) continue
+
+      let score = 0
+      if (idx.name.startsWith(q)) score += 100
+      else if (idx.name.includes(q)) score += 60
+
+      if (idx.city.startsWith(q)) score += 40
+      else if (idx.city.includes(q)) score += 20
+
+      if (idx.zip.startsWith(q)) score += 30
+      else if (idx.zip.includes(q)) score += 10
+
+      pushCandidate({ branch: b, score })
+
+      // Small shortcut: perfect prefix matches fill the list quickly.
+      if (top.length === 6 && top[5].score >= 100) break
+    }
+
+    return top.sort(cmp).map((c) => c.branch)
+  }, [baseFilteredBranches, branchSearchIndex, debouncedSuggestText, searchMode])
+
+  const isSuggestDebouncing =
+    searchMode === 'text' && immediateSearchText !== debouncedSuggestText
+
+  const listKey = `${countryCode}:${city}:${searchMode}:${debouncedSearchText}`
   const resultsFocusKey =
     countryCode !== 'all' || city !== 'all' ? `${countryCode}:${city}` : null
 
-  function openPanel(mode: PanelMode) {
+  const openPanel = useCallback((mode: PanelMode) => {
     setIsPanelOpen(true)
     setPanelMode(mode)
-  }
+  }, [])
+
+  const handleQueryChange = useCallback((next: string) => {
+    setSearchMode('text')
+    setQuery(next)
+  }, [])
+
+  const handleCountryCodeChange = useCallback((next: string) => {
+    setCountryCode(next)
+    setCity('all')
+  }, [])
+
+  const handleSelectBranchSuggestion = useCallback(
+    (b: BranchWithComputed) => {
+      setSelectedBranchId(b._id)
+      setRoute(null)
+      openPanel('details')
+    },
+    [openPanel],
+  )
+
+  const handleLocateMe = useCallback(() => {
+    setSearchMode('nearMe')
+    setQuery('My location')
+    setSelectedBranchId(null)
+    setIsPanelOpen(false)
+    setPanelMode('details')
+    setRoute(null)
+    geo.request()
+  }, [geo])
+
+  const handleClearFilters = useCallback(() => {
+    setCountryCode('all')
+    setCity('all')
+    setQuery('')
+  }, [])
+
+  const handleSelectBranch = useCallback(
+    (b: BranchWithComputed) => {
+      setSelectedBranchId(b._id)
+      setRoute(null)
+      openPanel('details')
+    },
+    [openPanel],
+  )
+
+  const handleSelectBranchIdFromMap = useCallback(
+    (id: string) => {
+      setSelectedBranchId(id)
+      setRoute(null)
+      openPanel('details')
+    },
+    [openPanel],
+  )
+
+  const handleModeChange = useCallback(
+    (m: PanelMode) => {
+      if (m === 'directions' && !geo.location && geo.status !== 'loading') {
+        geo.request()
+      }
+      openPanel(m)
+    },
+    [geo, openPanel],
+  )
+
+  const handleClosePanel = useCallback(() => {
+    setIsPanelOpen(false)
+    setPanelMode('details')
+    setRoute(null)
+  }, [])
 
   return (
     <div className="finder">
@@ -165,42 +308,19 @@ export function BranchFinder() {
 
       <BranchFilters
         query={query}
-        onQueryChange={(next) => {
-          setSearchMode('text')
-          setQuery(next)
-        }}
+        onQueryChange={handleQueryChange}
         countryCode={countryCode}
-        onCountryCodeChange={(next) => {
-          setCountryCode(next)
-          setCity('all')
-        }}
+        onCountryCodeChange={handleCountryCodeChange}
         city={city}
         onCityChange={setCity}
         countries={countries}
         cities={cities}
         branchSuggestions={branchSuggestions}
-        isSuggestLoading={isSearchDebouncing}
-        onSelectBranchSuggestion={(b) => {
-          setSelectedBranchId(b._id)
-          setRoute(null)
-          openPanel('details')
-        }}
+        isSuggestLoading={isSuggestDebouncing}
+        onSelectBranchSuggestion={handleSelectBranchSuggestion}
         geolocation={geo}
-        onLocateMe={() => {
-          // NOTE(ux): "Locate me" populates the search box, but doesn't apply a
-          // textual filter. Branches are sorted/zoomed by proximity instead.
-          setSearchMode('nearMe')
-          setQuery('My location')
-          setSelectedBranchId(null)
-          setIsPanelOpen(false)
-          setPanelMode('details')
-          setRoute(null)
-          geo.request()
-        }}
-        onClearFilters={() => {
-          setCountryCode('all')
-          setCity('all')
-        }}
+        onLocateMe={handleLocateMe}
+        onClearFilters={handleClearFilters}
       />
 
       <div className="finder__layout">
@@ -211,23 +331,15 @@ export function BranchFinder() {
             branches={filteredBranches}
             error={branchesQuery.error}
             selectedBranchId={selectedBranchId}
-            onSelectBranch={(b) => {
-              setSelectedBranchId(b._id)
-              setRoute(null)
-              openPanel('details')
-            }}
+            onSelectBranch={handleSelectBranch}
           />
         </div>
 
         <div className="finder__panel finder__panel--map">
           <BranchMap
-            branches={filteredBranches}
+            branches={mapBranches}
             selectedBranchId={selectedBranchId}
-            onSelectBranchId={(id) => {
-              setSelectedBranchId(id)
-              setRoute(null)
-              openPanel('details')
-            }}
+            onSelectBranchId={handleSelectBranchIdFromMap}
             userLocation={geo.location}
             route={route}
             resultsFocusKey={resultsFocusKey}
@@ -238,24 +350,14 @@ export function BranchFinder() {
       <BranchSidePanel
         branch={isPanelOpen ? selectedBranch : null}
         mode={panelMode}
-        onModeChange={(m) => {
-          // NOTE(ux): Directions default to the user's current location.
-          if (m === 'directions' && !geo.location && geo.status !== 'loading') {
-            geo.request()
-          }
-          openPanel(m)
-        }}
+        onModeChange={handleModeChange}
         userLocation={geo.location}
         geolocation={geo}
         originText={originText}
         onOriginTextChange={setOriginText}
         route={route}
         onRouteChange={setRoute}
-        onClose={() => {
-          setIsPanelOpen(false)
-          setPanelMode('details')
-          setRoute(null)
-        }}
+        onClose={handleClosePanel}
       />
     </div>
   )

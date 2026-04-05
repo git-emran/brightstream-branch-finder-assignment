@@ -19,7 +19,10 @@ type NominatimResult = {
   display_name?: string
 }
 
-export async function geocodeOrigin(query: string): Promise<LatLng> {
+export async function geocodeOrigin(
+  query: string,
+  opts?: { signal?: AbortSignal },
+): Promise<LatLng> {
   const q = query.trim()
   if (!q) throw new Error('Enter a starting location.')
 
@@ -31,7 +34,7 @@ export async function geocodeOrigin(query: string): Promise<LatLng> {
   url.searchParams.set('q', q)
   url.searchParams.set('limit', '1')
 
-  const res = await fetch(url.toString(), { method: 'GET' })
+  const res = await fetch(url.toString(), { method: 'GET', signal: opts?.signal })
   if (!res.ok) throw new Error('Unable to geocode the origin location.')
 
   const json = (await res.json()) as NominatimResult[]
@@ -88,6 +91,7 @@ function buildInstruction(step: OsrmStep) {
 export async function fetchDirectionsRoute(
   origin: LatLng,
   destination: LatLng,
+  opts?: { signal?: AbortSignal },
 ): Promise<DirectionsRoute> {
   // NOTE(routing): OSRM public endpoint (no API key) for take-home use.
   const url = new URL(
@@ -97,7 +101,7 @@ export async function fetchDirectionsRoute(
   url.searchParams.set('geometries', 'geojson')
   url.searchParams.set('steps', 'true')
 
-  const res = await fetch(url.toString(), { method: 'GET' })
+  const res = await fetch(url.toString(), { method: 'GET', signal: opts?.signal })
   if (!res.ok) throw new Error('Unable to fetch directions.')
 
   const json = (await res.json()) as OsrmResponse

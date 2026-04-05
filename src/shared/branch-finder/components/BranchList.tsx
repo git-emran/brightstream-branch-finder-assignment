@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BranchWithComputed } from '../types'
 import { formatDistance, formatInlineAddress } from '../utils'
 import { LoadingState } from './LoadingState'
@@ -40,7 +40,7 @@ function getPageItems(currentPage: number, totalPages: number) {
   return out
 }
 
-export function BranchList(props: Props) {
+export const BranchList = memo(function BranchList(props: Props) {
   const { status, branches, error, selectedBranchId, onSelectBranch } = props
   const [pageIndex, setPageIndex] = useState(0) // 0-based
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -285,4 +285,4 @@ export function BranchList(props: Props) {
       </div>
     </div>
   )
-}
+})

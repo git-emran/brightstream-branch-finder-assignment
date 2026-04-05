@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import {
   CircleMarker,
@@ -96,16 +96,27 @@ function MapEffects(props: {
       if (nextKey === lastUserLocationKey.current) return
       lastUserLocationKey.current = nextKey
 
-      // NOTE(ux): When geolocation becomes available, show the "nearest" area
-      // (user + closest few branches) rather than zooming out to a generic view.
-      const focusPoints = [userLocation, ...nearbyCoords.slice(0, 8)]
+      // NOTE(ux): When geolocation becomes available ("Locate me"), focus the map
+      // on the nearest branches rather than centering on the user's marker.
+      //
+      // This prevents empty map states when the nearest branch is far away
+      // (e.g., user in region with sparse coverage).
+      const focusPoints = nearbyCoords.length
+        ? nearbyCoords.slice(0, 5)
+        : resultsCoords.slice(0, 5)
+
+      if (focusPoints.length === 1) {
+        map.flyTo(focusPoints[0], Math.max(map.getZoom(), 6), { duration: 0.6 })
+        return
+      }
+
       if (focusPoints.length >= 2) {
         const bounds = L.latLngBounds(focusPoints.map((p) => [p.lat, p.lng]))
         map.fitBounds(bounds.pad(0.18))
         return
       }
 
-      map.flyTo(userLocation, Math.max(map.getZoom(), 11), { duration: 0.6 })
+      map.flyTo(userLocation, 11, { duration: 0.6 })
       return
     } else if (lastUserLocationKey.current !== null) {
       lastUserLocationKey.current = null
@@ -128,7 +139,7 @@ function MapZoomWatcher(props: { onZoomChange: (zoom: number) => void }) {
   return null
 }
 
-export function BranchMap(props: Props) {
+export const BranchMap = memo(function BranchMap(props: Props) {
   const {
     branches,
     selectedBranchId,
@@ -251,4 +262,4 @@ export function BranchMap(props: Props) {
       </MapContainer>
     </div>
   )
-}
+})

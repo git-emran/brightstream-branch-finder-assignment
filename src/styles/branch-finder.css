@@ -76,31 +76,27 @@
   scrollbar-gutter: stable;
 }
 
+.comboMeta {
+  padding: 0.55rem 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: rgba(100, 116, 139, 0.92);
+  font-size: 0.88rem;
+}
+.comboMeta__spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(10, 22, 40, 0.16);
+  border-top-color: rgba(212, 175, 55, 0.95);
+  animation: spin 820ms linear infinite;
+}
+
 .comboEmpty {
   padding: 0.7rem 0.75rem;
   color: rgba(100, 116, 139, 0.92);
   font-size: 0.9rem;
-}
-
-.comboItem--skeleton {
-  cursor: default;
-}
-.comboItem--skeleton:hover {
-  background: transparent;
-}
-
-.skeletonLine--comboIcon {
-  width: 16px;
-  height: 16px;
-  border-radius: 6px;
-}
-.skeletonLine--comboTitle {
-  width: 72%;
-  height: 14px;
-}
-.skeletonLine--comboSub {
-  width: 58%;
-  height: 12px;
 }
 
 .comboItem {
@@ -575,21 +571,30 @@
   font-weight: 600;
   color: rgba(10, 22, 40, 0.62);
   position: relative;
+  transition: all 0.3s ease;
 }
 .sidePanelTab:hover {
   color: rgba(10, 22, 40, 0.86);
+}
+.sidePanelTab::after {
+  /* Match the header nav selection indicator. */
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+.sidePanelTab:hover::after {
+  width: 100%;
 }
 .sidePanelTab--active {
   color: var(--midnight);
 }
 .sidePanelTab--active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold), rgba(212, 175, 55, 0));
+  width: 100%;
 }
 
 .sidePanel__body {
