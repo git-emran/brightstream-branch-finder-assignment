@@ -16,6 +16,16 @@ export function useGeolocation(): GeolocationState {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const request = useCallback(() => {
+    // NOTE(geolocation): In production, geolocation may be blocked if the app is
+    // not running in a secure context (HTTPS) or is opened directly from disk.
+    // Provide a clear message and fall back to rough IP geolocation when possible.
+    const protocol = window.location.protocol
+    const hostname = window.location.hostname
+    const isLocalhost =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '[::1]'
+
     if (!navigator.geolocation) {
       setStatus('error')
       setErrorMessage('Geolocation is not supported by this browser.')
@@ -39,6 +49,22 @@ export function useGeolocation(): GeolocationState {
         setStatus('error')
         setErrorMessage(reason || 'Unable to determine location.')
       }
+    }
+
+    if (protocol === 'file:') {
+      // File origins typically block required APIs and network requests.
+      setStatus('error')
+      setErrorMessage(
+        'Location requires serving the app over HTTP(S). Use `npm run preview` or deploy to HTTPS.',
+      )
+      return
+    }
+
+    if (!window.isSecureContext && !isLocalhost) {
+      requestFallback(
+        'Geolocation requires HTTPS. Using an approximate location instead.',
+      )
+      return
     }
 
     setStatus('loading')

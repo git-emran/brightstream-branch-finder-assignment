@@ -5,15 +5,33 @@ export function Header() {
 
   useEffect(() => {
     const hero = document.querySelector('.bs-hero--branchFinder')
-    if (!hero) return
-    if (!('IntersectionObserver' in window)) return
+    if (!(hero instanceof HTMLElement)) return
+    const heroEl: HTMLElement = hero
+
+    // NOTE(header): `IntersectionObserver` exists in TypeScript's DOM typings,
+    // but may be missing at runtime in older browsers / embedded webviews.
+    if (typeof IntersectionObserver === 'undefined') {
+      // NOTE(header): Fallback for older browsers that don't support IntersectionObserver.
+      // Keep the header "on hero" while the hero is visible behind the fixed header.
+      function update() {
+        const rect = heroEl.getBoundingClientRect()
+        setIsOnHero(rect.bottom > 88)
+      }
+      update()
+      window.addEventListener('scroll', update, { passive: true })
+      window.addEventListener('resize', update)
+      return () => {
+        window.removeEventListener('scroll', update)
+        window.removeEventListener('resize', update)
+      }
+    }
 
     const io = new IntersectionObserver(
       ([entry]) => setIsOnHero(entry.isIntersecting),
       { root: null, threshold: 0, rootMargin: '-88px 0px 0px 0px' },
     )
 
-    io.observe(hero)
+    io.observe(heroEl)
     return () => io.disconnect()
   }, [])
 

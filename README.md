@@ -47,14 +47,20 @@ Then open the local URL printed by Vite.
 
 - Node.js 18+ recommended
 
-### Optimizely Graph Endpoint (Optional)
+### Optimizely Graph Endpoint (Required)
 
-By default the app uses the provided single-key Optimizely Graph endpoint (embedded as a default in `src/shared/optimizelyGraphClient.ts`).
-
-To override:
+This app requires an Optimizely Graph endpoint (including the single-key `auth=...` query param).
 
 1. Copy `.env.example` to `.env`
-2. Set `VITE_OPTIMIZELY_GRAPH_ENDPOINT`
+2. Set `VITE_OPTIMIZELY_GRAPH_ENDPOINT` to the endpoint provided in the assignment brief
+
+Example:
+
+```bash
+VITE_OPTIMIZELY_GRAPH_ENDPOINT="https://cg.optimizely.com/content/v2?auth=YOUR_KEY_HERE"
+```
+
+Note: `src/shared/optimizelyGraphClient.ts` intentionally does not hardcode the endpoint so the repo can stay public without embedding credentials.
 
 ## Build / Preview
 
@@ -69,6 +75,8 @@ This repo includes `netlify.toml`:
 
 - Build command: `npm run build`
 - Publish directory: `dist`
+
+Also configure the `VITE_OPTIMIZELY_GRAPH_ENDPOINT` environment variable in Netlify.
 
 ## Notes / Limitations
 

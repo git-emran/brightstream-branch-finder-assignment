@@ -124,7 +124,10 @@ select {
 .bs-nav {
   padding: 1.25rem 0;
   /* DESIGN(glass-nav): Totally transparent background + blur (no white wash). */
-  background: transparent;
+  /* NOTE(backdrop-filter): Some browsers won't paint backdrop blur if the
+   * element has a fully transparent background. Use an imperceptible fill.
+   */
+  background: rgba(255, 255, 255, 0.01);
   border-bottom: 1px solid transparent;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -575,4 +578,18 @@ select {
 }
 .bs-header--onHero .bs-nav__link--active {
   color: rgba(254, 253, 251, 0.98);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  /* NOTE(fallback): Provide a tasteful non-blur fallback where backdrop-filter
+   * is unsupported (e.g., some Firefox configurations).
+   */
+  .bs-nav {
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom-color: rgba(10, 22, 40, 0.08);
+  }
+  .bs-header--onHero .bs-nav {
+    background: rgba(10, 22, 40, 0.62);
+    border-bottom-color: rgba(254, 253, 251, 0.12);
+  }
 }
