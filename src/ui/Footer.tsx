@@ -20,7 +20,7 @@ export function Footer() {
         </div>
 
         <div className="bs-footer__fineprint">
-          © {new Date().getFullYear()} Brightstream Bank. All rights reserved.
+          © {new Date().getFullYear()} Brightstream Bank by Emran H. All rights reserved.
         </div>
       </div>
     </footer>

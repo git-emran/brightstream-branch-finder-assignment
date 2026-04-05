@@ -743,14 +743,36 @@
     grid-template-columns: 1fr;
   }
   .sidePanel {
-    /* Full-bleed panel on mobile */
-    width: 100%;
-    left: 0;
+    /* NOTE(mobile-modal): Use a centered modal on mobile instead of a left
+     * drawer. This improves reachability and avoids awkward leftover space.
+     */
+    top: 50%;
+    left: 50%;
+    width: min(520px, calc(100% - 32px));
+    height: min(760px, calc(100dvh - 140px));
     padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.98);
+    transition:
+      transform 220ms ease,
+      opacity 200ms ease;
   }
   .sidePanel__content {
-    border-radius: 0;
+    border-radius: var(--radius-lg);
     height: 100%;
+  }
+  .sidePanel--open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .sidePanelScrim {
+    /* Ensure the scrim blocks the fixed header on mobile. */
+    z-index: 4500;
+  }
+  .sidePanel {
+    z-index: 4600;
   }
   .pager__nav {
     flex-wrap: wrap;
